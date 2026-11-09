@@ -74,7 +74,7 @@ export const DEMO_USERS: Record<string, { user: User; planCode: PlanCode }> = {
       fullName: 'Ing. Mateo Serrano',
       phone: '+593 99 876 5432',
       role: 'AGENT',
-      avatarUrl: 'https://lh3.googleusercontent.com/aida/AEtjO1UghQGMZGWEGb950y5APxXYS_EBQYI9_iTaKsqy3WK4abgZR03Jeodd8Uaskpr-ePf_Y86wzAGLTXCf3zi77uRx_FmHA2A58J_eOg6P08HiyhzpS9Xd2VfiMsvGEjVD1W5r5j3IbpD9CmTdjAM-9VzLPVPf4vMhWbhIPedKBVnzY0JZxqgGDTBbyRBYsQpzndRK3rGULIVibZ_vi06zxhKuOQfnOrUriA8thdhow_KWSygFWkGtZu8lCRs',
+      avatarUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=256&q=80',
       isVerified: true,
       companyName: 'Valle & Urbe Patrimonial Cumbayá',
       licenseNumber: 'Lic. Notarial #0492 DMQ',
@@ -141,16 +141,18 @@ class AuthService {
 
   public getInitialState(): AuthState {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        return {
-          isAuthenticated: true,
-          user: parsed.user,
-          subscription: parsed.subscription,
-          tokens: parsed.tokens,
-          isLoading: false
-        };
+      if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          return {
+            isAuthenticated: true,
+            user: parsed.user,
+            subscription: parsed.subscription,
+            tokens: parsed.tokens,
+            isLoading: false
+          };
+        }
       }
     } catch (e) {
       console.warn('Error hydrating auth state:', e);
@@ -167,7 +169,9 @@ class AuthService {
 
   public saveSession(user: User, subscription: UserSubscription, tokens: AuthTokens): void {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ user, subscription, tokens }));
+      if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ user, subscription, tokens }));
+      }
     } catch (e) {
       console.error('Error saving session:', e);
     }
@@ -175,7 +179,9 @@ class AuthService {
 
   public clearSession(): void {
     try {
-      localStorage.removeItem(STORAGE_KEY);
+      if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+        localStorage.removeItem(STORAGE_KEY);
+      }
     } catch (e) {
       console.error('Error clearing session:', e);
     }
