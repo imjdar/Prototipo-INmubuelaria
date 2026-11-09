@@ -2799,3 +2799,46 @@ button {
     display: none;
   }
 }
+
+/* ==========================================================================
+   Sprint 1: Auth, RBAC & Membership Modals
+   ========================================================================== */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(18, 20, 23, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  animation: modalFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.auth-modal-card,
+.plans-modal-card,
+.publish-modal-card,
+.user-profile-modal-card {
+  animation: modalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-publish-header:hover {
+  background: rgba(212, 175, 55, 0.22) !important;
+  border-color: #D4AF37 !important;
+  transform: translateY(-1px);
+}
+
+.user-profile-header-btn:hover {
+  background: #F9FAFB !important;
+  border-color: #D4AF37 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.btn-auth-login:hover {
+  background: #272B2E !important;
+  transform: translateY(-1px);
+}
+

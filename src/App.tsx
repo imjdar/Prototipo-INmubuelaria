@@ -1,7 +1,10 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Property, FilterState, Sector } from './types/property';
 import { ToastMessage } from './types/toast';
+import { User, UserSubscription, PlanCode, AuthState } from './types/auth';
 import { PROPERTIES } from './data/properties';
+import { authService, MEMBERSHIP_PLANS, DEMO_USERS } from './services/authService';
+
 import { TopMicroBar } from './components/TopMicroBar';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
@@ -21,13 +24,51 @@ import { MobileDeviceSimulator } from './components/MobileDeviceSimulator';
 import { ToastContainer } from './components/ToastContainer';
 import { Footer } from './components/Footer';
 
+// Sprint 1 Auth & Subscription Components
+import { AuthModal } from './components/AuthModal';
+import { UserProfileModal } from './components/UserProfileModal';
+import { MembershipPlansModal } from './components/MembershipPlansModal';
+import { PublishPropertyModal } from './components/PublishPropertyModal';
+
 const FAVORITES_STORAGE_KEY = 'valle_urbe_saved_favorites_v1';
 
 export const App: React.FC = () => {
   // Navigation & View States
   const [activeView, setActiveView] = useState<'catalog' | 'split' | 'detail'>('catalog');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [propertyList, setPropertyList] = useState<Property[]>(PROPERTIES);
   const [selectedProperty, setSelectedProperty] = useState<Property>(PROPERTIES[0]);
+
+  // Sprint 1: Auth & User Session State
+  const [authState, setAuthState] = useState<AuthState>(() => {
+    const initial = authService.getInitialState();
+    if (initial.isAuthenticated && initial.user) return initial;
+    // Default to Mateo Serrano (Agent Pro) for high-impact reviewer experience
+    const demo = DEMO_USERS.agent;
+    const initialSub: UserSubscription = {
+      id: 'sub-default-001',
+      userId: demo.user.id,
+      plan: MEMBERSHIP_PLANS.PRO_AGENT,
+      status: 'ACTIVE',
+      currentPeriodStart: '2026-01-01T00:00:00Z',
+      currentPeriodEnd: '2027-01-01T00:00:00Z',
+      autoRenew: true,
+      usedListings: 4
+    };
+    return {
+      isAuthenticated: true,
+      user: demo.user,
+      subscription: initialSub,
+      tokens: null,
+      isLoading: false
+    };
+  });
+
+  // Sprint 1 Modals
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
+  const [isPlansModalOpen, setIsPlansModalOpen] = useState<boolean>(false);
+  const [isPublishModalOpen, setIsPublishModalOpen] = useState<boolean>(false);
 
   // Wishlist & Comparison States
   const [savedPropertyIds, setSavedPropertyIds] = useState<string[]>(() => {
@@ -91,50 +132,46 @@ export const App: React.FC = () => {
     }
   }, [savedPropertyIds]);
 
-  // Global Keyboard Shortcuts (IHC Heuristics: Flexibility & Efficiency)
+  // Global Keyboard Shortcuts (Esc closes any open modal)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Esc closes modals and drawers
       if (e.key === 'Escape') {
-        if (isCompareModalOpen) {
-          setIsCompareModalOpen(false);
-          return;
-        }
-        if (isFavoritesDrawerOpen) {
-          setIsFavoritesDrawerOpen(false);
-          return;
-        }
-        if (quickViewProperty) {
-          setQuickViewProperty(null);
-          return;
-        }
-        if (isWhatsAppOpen) {
-          setIsWhatsAppOpen(false);
-          return;
-        }
-        if (isScheduleOpen) {
-          setIsScheduleOpen(false);
-          return;
-        }
+        if (isAuthModalOpen) { setIsAuthModalOpen(false); return; }
+        if (isProfileModalOpen) { setIsProfileModalOpen(false); return; }
+        if (isPlansModalOpen) { setIsPlansModalOpen(false); return; }
+        if (isPublishModalOpen) { setIsPublishModalOpen(false); return; }
+        if (isCompareModalOpen) { setIsCompareModalOpen(false); return; }
+        if (isFavoritesDrawerOpen) { setIsFavoritesDrawerOpen(false); return; }
+        if (quickViewProperty) { setQuickViewProperty(null); return; }
+        if (isWhatsAppOpen) { setIsWhatsAppOpen(false); return; }
+        if (isScheduleOpen) { setIsScheduleOpen(false); return; }
       }
 
-      // '/' focuses the search bar if not already in an input
+      // '/' focuses the search bar if not in input
       if (e.key === '/' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
         e.preventDefault();
         const searchInput = document.getElementById('main-property-search');
-        if (searchInput) {
-          searchInput.focus();
-        }
+        if (searchInput) searchInput.focus();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isCompareModalOpen, isFavoritesDrawerOpen, quickViewProperty, isWhatsAppOpen, isScheduleOpen]);
+  }, [
+    isAuthModalOpen,
+    isProfileModalOpen,
+    isPlansModalOpen,
+    isPublishModalOpen,
+    isCompareModalOpen,
+    isFavoritesDrawerOpen,
+    quickViewProperty,
+    isWhatsAppOpen,
+    isScheduleOpen
+  ]);
 
   // Filtered & Sorted Properties Engine
   const filteredAndSortedProperties = useMemo(() => {
-    let result = PROPERTIES.filter((p) => {
+    let result = propertyList.filter((p) => {
       // Search query text matching
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase().trim();
@@ -181,26 +218,121 @@ export const App: React.FC = () => {
         break;
       case 'featured':
       default:
-        // maintain original curated order
         break;
     }
 
     return result;
-  }, [filters, searchQuery, sortOption]);
+  }, [propertyList, filters, searchQuery, sortOption]);
 
   // Compared Properties Objects
   const comparedProperties = useMemo(() => {
-    return PROPERTIES.filter((p) => comparedPropertyIds.includes(p.id));
-  }, [comparedPropertyIds]);
+    return propertyList.filter((p) => comparedPropertyIds.includes(p.id));
+  }, [propertyList, comparedPropertyIds]);
 
   // Saved Properties Objects
   const savedProperties = useMemo(() => {
-    return PROPERTIES.filter((p) => savedPropertyIds.includes(p.id));
-  }, [savedPropertyIds]);
+    return propertyList.filter((p) => savedPropertyIds.includes(p.id));
+  }, [propertyList, savedPropertyIds]);
 
-  // Handlers
+  // Sprint 1 Auth Handlers
+  const handleLoginSuccess = (user: User) => {
+    const sub = authService.getInitialState().subscription || {
+      id: `sub-${Date.now()}`,
+      userId: user.id,
+      plan: MEMBERSHIP_PLANS[user.role === 'AGENT' ? 'PRO_AGENT' : 'FREE'],
+      status: 'ACTIVE',
+      currentPeriodStart: new Date().toISOString(),
+      currentPeriodEnd: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+      autoRenew: true,
+      usedListings: user.role === 'AGENT' ? 4 : 0
+    };
+
+    setAuthState({
+      isAuthenticated: true,
+      user,
+      subscription: sub,
+      tokens: null,
+      isLoading: false
+    });
+
+    addToast(
+      `¡Bienvenido, ${user.fullName.split(' ')[0]}!`,
+      `Sesión iniciada con perfil: ${user.role}`,
+      'success'
+    );
+  };
+
+  const handleLogout = () => {
+    authService.clearSession();
+    setAuthState({
+      isAuthenticated: false,
+      user: null,
+      subscription: null,
+      tokens: null,
+      isLoading: false
+    });
+    setIsProfileModalOpen(false);
+    addToast('Sesión Cerrada', 'Has cerrado tu sesión segura en Valle & Urbe.', 'info');
+  };
+
+  const handleSwitchDemo = async (key: 'agent' | 'buyer' | 'admin') => {
+    const result = await authService.loginWithDemo(key);
+    setAuthState({
+      isAuthenticated: true,
+      user: result.user,
+      subscription: result.subscription,
+      tokens: result.tokens,
+      isLoading: false
+    });
+    setIsProfileModalOpen(false);
+    addToast(
+      'Rol Alternado (Demo RBAC)',
+      `Ahora navegando como: ${result.user.fullName} (${result.user.role})`,
+      'info'
+    );
+  };
+
+  const handleSelectPlan = async (planCode: PlanCode) => {
+    if (!authState.user) {
+      setIsPlansModalOpen(false);
+      setIsAuthModalOpen(true);
+      return;
+    }
+    const updatedSub = await authService.upgradeSubscription(authState.user, planCode);
+    setAuthState((prev) => ({
+      ...prev,
+      subscription: updatedSub
+    }));
+    setIsPlansModalOpen(false);
+    addToast(
+      'Membresía Actualizada',
+      `Has activado el plan: ${updatedSub.plan.name}`,
+      'success'
+    );
+  };
+
+  const handlePropertyPublished = (newProperty: Property) => {
+    setPropertyList((prev) => [newProperty, ...prev]);
+    setSelectedProperty(newProperty);
+    if (authState.subscription) {
+      setAuthState((prev) => ({
+        ...prev,
+        subscription: prev.subscription ? {
+          ...prev.subscription,
+          usedListings: prev.subscription.usedListings + 1
+        } : null
+      }));
+    }
+    addToast(
+      '¡Propiedad Publicada con Éxito!',
+      `${newProperty.title} ha superado la auditoría IA y está en vivo.`,
+      'success'
+    );
+  };
+
+  // Property Actions
   const toggleFavorite = (id: string) => {
-    const prop = PROPERTIES.find((p) => p.id === id);
+    const prop = propertyList.find((p) => p.id === id);
     setSavedPropertyIds((prev) => {
       const exists = prev.includes(id);
       if (exists) {
@@ -238,7 +370,7 @@ export const App: React.FC = () => {
   };
 
   const handleRemoveFromCompare = (id: string) => {
-    const prop = PROPERTIES.find((p) => p.id === id);
+    const prop = propertyList.find((p) => p.id === id);
     setComparedPropertyIds((prev) => prev.filter((item) => item !== id));
     if (prop) {
       addToast('Removida del comparador', prop.title, 'info');
@@ -270,7 +402,7 @@ export const App: React.FC = () => {
   };
 
   const handleSelectPropertyById = (id: string) => {
-    const prop = PROPERTIES.find((p) => p.id === id);
+    const prop = propertyList.find((p) => p.id === id);
     if (prop) {
       handleSelectProperty(prop);
     }
@@ -344,11 +476,12 @@ export const App: React.FC = () => {
         onToggleMobile={() => setIsMobileSimulated(!isMobileSimulated)}
       />
 
-      {/* Header with Wishlist & Compare badges */}
+      {/* Header with Wishlist, Compare badges, and Sprint 1 Auth / Publish */}
       <Header
         activeView={activeView}
         savedCount={savedPropertyIds.length}
         comparedCount={comparedPropertyIds.length}
+        user={authState.user}
         onNavigate={(view) => {
           setActiveView(view);
           if (view === 'split') setViewMode('map');
@@ -358,6 +491,10 @@ export const App: React.FC = () => {
         onOpenCompare={() => setIsCompareModalOpen(true)}
         onOpenWhatsApp={() => handleOpenWhatsApp()}
         onSelectPropertyById={handleSelectPropertyById}
+        onOpenAuth={() => setIsAuthModalOpen(true)}
+        onOpenProfile={() => setIsProfileModalOpen(true)}
+        onOpenPlans={() => setIsPlansModalOpen(true)}
+        onOpenPublish={() => setIsPublishModalOpen(true)}
       />
 
       {/* Hero Header */}
@@ -385,7 +522,7 @@ export const App: React.FC = () => {
             <ActiveFilterChips
               filters={filters}
               searchQuery={searchQuery}
-              totalCount={PROPERTIES.length}
+              totalCount={propertyList.length}
               filteredCount={filteredAndSortedProperties.length}
               sortOption={sortOption}
               viewMode={viewMode}
@@ -491,6 +628,39 @@ export const App: React.FC = () => {
         onRemoveProperty={handleRemoveFromCompare}
         onClearAll={handleClearCompare}
         onOpenModal={() => setIsCompareModalOpen(true)}
+      />
+
+      {/* Sprint 1 Modals: Auth, User Profile, Plans, Publish */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onLoginSuccess={handleLoginSuccess}
+      />
+
+      <UserProfileModal
+        isOpen={isProfileModalOpen}
+        user={authState.user}
+        subscription={authState.subscription}
+        onClose={() => setIsProfileModalOpen(false)}
+        onLogout={handleLogout}
+        onOpenPlans={() => setIsPlansModalOpen(true)}
+        onSwitchDemo={handleSwitchDemo}
+      />
+
+      <MembershipPlansModal
+        isOpen={isPlansModalOpen}
+        currentSubscription={authState.subscription}
+        onClose={() => setIsPlansModalOpen(false)}
+        onSelectPlan={handleSelectPlan}
+      />
+
+      <PublishPropertyModal
+        isOpen={isPublishModalOpen}
+        user={authState.user}
+        subscription={authState.subscription}
+        onClose={() => setIsPublishModalOpen(false)}
+        onRequireAuth={() => setIsAuthModalOpen(true)}
+        onPropertyPublished={handlePropertyPublished}
       />
 
       {/* Modals & Drawers */}
