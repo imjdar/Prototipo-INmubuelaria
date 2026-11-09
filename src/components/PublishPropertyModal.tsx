@@ -18,6 +18,16 @@ interface PublishPropertyModalProps {
   isOpen: boolean;
   user: User | null;
   subscription: UserSubscription | null;
+  initialData?: {
+    sector?: Sector;
+    propertyType?: PropertyType;
+    price?: number;
+    areaBuild?: number;
+    bedrooms?: number;
+    bathrooms?: number;
+    hasGenerator?: boolean;
+    hasMetro?: boolean;
+  } | null;
   onClose: () => void;
   onRequireAuth: () => void;
   onPropertyPublished: (newProperty: any) => void;
@@ -27,6 +37,7 @@ export const PublishPropertyModal: React.FC<PublishPropertyModalProps> = ({
   isOpen,
   user,
   subscription,
+  initialData,
   onClose,
   onRequireAuth,
   onPropertyPublished
@@ -37,23 +48,37 @@ export const PublishPropertyModal: React.FC<PublishPropertyModalProps> = ({
 
   // Form Fields
   const [title, setTitle] = useState('');
-  const [sector, setSector] = useState<Sector>('Cumbayá');
+  const [sector, setSector] = useState<Sector>(initialData?.sector || 'Cumbayá');
   const [microzone, setMicrozone] = useState('');
-  const [type, setType] = useState<PropertyType>('Casa');
-  const [price, setPrice] = useState<number>(350000);
-  const [areaBuild, setAreaBuild] = useState<number>(240);
+  const [type, setType] = useState<PropertyType>(initialData?.propertyType || 'Casa');
+  const [price, setPrice] = useState<number>(initialData?.price || 350000);
+  const [areaBuild, setAreaBuild] = useState<number>(initialData?.areaBuild || 240);
   const [areaLot, setAreaLot] = useState<number>(450);
-  const [bedrooms, setBedrooms] = useState<number>(3);
-  const [bathrooms, setBathrooms] = useState<number>(3.5);
+  const [bedrooms, setBedrooms] = useState<number>(initialData?.bedrooms || 3);
+  const [bathrooms, setBathrooms] = useState<number>(initialData?.bathrooms || 3.5);
   const [parking, setParking] = useState<number>(2);
 
   // Quito 2026 Features
-  const [hasGenerator, setHasGenerator] = useState<boolean>(true);
-  const [hasMetro, setHasMetro] = useState<boolean>(false);
+  const [hasGenerator, setHasGenerator] = useState<boolean>(initialData?.hasGenerator ?? true);
+  const [hasMetro, setHasMetro] = useState<boolean>(initialData?.hasMetro ?? false);
   const [hasDoubleGate, setHasDoubleGate] = useState<boolean>(true);
   const [isValleyClimate, setIsValleyClimate] = useState<boolean>(true);
   const [biessEligible, setBiessEligible] = useState<boolean>(true);
   const [description, setDescription] = useState('');
+
+  // Sync initialData changes when opened
+  React.useEffect(() => {
+    if (initialData) {
+      if (initialData.sector) setSector(initialData.sector);
+      if (initialData.propertyType) setType(initialData.propertyType);
+      if (initialData.price) setPrice(initialData.price);
+      if (initialData.areaBuild) setAreaBuild(initialData.areaBuild);
+      if (initialData.bedrooms) setBedrooms(initialData.bedrooms);
+      if (initialData.bathrooms) setBathrooms(initialData.bathrooms);
+      if (initialData.hasGenerator !== undefined) setHasGenerator(initialData.hasGenerator);
+      if (initialData.hasMetro !== undefined) setHasMetro(initialData.hasMetro);
+    }
+  }, [initialData]);
 
   if (!isOpen) return null;
 
@@ -252,8 +277,9 @@ export const PublishPropertyModal: React.FC<PublishPropertyModalProps> = ({
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.4rem',
-            background: 'rgba(212, 175, 55, 0.12)',
-            color: '#B89230',
+            background: '#FFF7ED',
+            color: '#FEA004',
+            border: '1px solid #FED7AA',
             padding: '0.25rem 0.75rem',
             borderRadius: '999px',
             fontSize: '0.72rem',
@@ -261,14 +287,14 @@ export const PublishPropertyModal: React.FC<PublishPropertyModalProps> = ({
             textTransform: 'uppercase',
             marginBottom: '0.5rem'
           }}>
-            <Building size={13} />
-            <span>Asistente de Publicación · 5 Pasos (PRO-022)</span>
+            <Building size={13} color="#FEA004" />
+            <span>Publicar Propiedad · 5 Pasos · Propiedades Premier</span>
           </div>
-          <h2 style={{ margin: 0, fontFamily: 'Playfair Display, serif', fontSize: '1.6rem', color: '#171A1C' }}>
-            Publicar Inmueble con Sello Notarial DMQ
+          <h2 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800, color: '#213145' }}>
+            Publicar Inmueble en Quito y sus Valles
           </h2>
           {subscription && (
-            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', color: '#6B7280' }}>
+            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', color: '#64748B' }}>
               Publicando como <strong>{user.fullName}</strong> · Cupo disponible: {subscription.usedListings} / {subscription.plan.maxListings} inmuebles
             </p>
           )}
@@ -282,16 +308,16 @@ export const PublishPropertyModal: React.FC<PublishPropertyModalProps> = ({
                   flex: 1,
                   height: '6px',
                   borderRadius: '999px',
-                  background: s <= currentStep ? '#D4AF37' : '#E5E7EB',
+                  background: s <= currentStep ? '#FEA004' : '#E2E8F0',
                   transition: 'background 0.3s'
                 }}
               />
             ))}
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#6B7280', marginTop: '0.35rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#64748B', marginTop: '0.35rem', fontWeight: 600 }}>
             <span>1. Datos</span>
             <span>2. Quito Plus</span>
-            <span>3. R2 Media</span>
+            <span>3. Fotos & Videos</span>
             <span>4. Notarial</span>
             <span>5. Bot IA</span>
           </div>
@@ -613,14 +639,15 @@ export const PublishPropertyModal: React.FC<PublishPropertyModalProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.4rem',
-                padding: '0.65rem 1.25rem',
-                background: '#171A1C',
+                padding: '0.65rem 1.4rem',
+                background: '#FEA004',
                 color: '#FFFFFF',
                 border: 'none',
                 borderRadius: '8px',
-                fontWeight: 600,
+                fontWeight: 700,
                 fontSize: '0.875rem',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(254, 160, 4, 0.35)'
               }}
             >
               <span>Continuar</span>
@@ -634,14 +661,15 @@ export const PublishPropertyModal: React.FC<PublishPropertyModalProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                padding: '0.75rem 1.5rem',
-                background: '#D4AF37',
-                color: '#171A1C',
+                padding: '0.75rem 1.6rem',
+                background: '#FEA004',
+                color: '#FFFFFF',
                 border: 'none',
                 borderRadius: '8px',
-                fontWeight: 700,
+                fontWeight: 800,
                 fontSize: '0.9rem',
-                cursor: isAiScanning || aiScanSuccess ? 'default' : 'pointer'
+                cursor: isAiScanning || aiScanSuccess ? 'default' : 'pointer',
+                boxShadow: '0 4px 14px rgba(254, 160, 4, 0.4)'
               }}
             >
               <Bot size={16} />

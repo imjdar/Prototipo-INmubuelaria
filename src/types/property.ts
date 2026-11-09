@@ -6,7 +6,36 @@ export type Sector =
   | 'Tumbaco' 
   | 'Nayón';
 
-export type PropertyType = 'Casa' | 'Penthouse' | 'Suite' | 'Terreno';
+export type PropertyType = 
+  | 'Casa' 
+  | 'Penthouse' 
+  | 'Suite' 
+  | 'Terreno'
+  | 'Departamento'
+  | 'Oficina'
+  | 'Bodega'
+  | 'Local'
+  | 'Proyecto';
+
+export type OperationType = 'VENTA' | 'RENTA' | 'PROYECTO';
+
+export interface RentalDetails {
+  leaseDurationMonths: number;
+  depositMonths: number;
+  petsAllowed: boolean;
+  includesHoa: boolean;
+  furnished: boolean;
+}
+
+export interface ProjectDetails {
+  developerName: string;
+  stage: 'PLANOS' | 'CONSTRUCCION' | 'ENTREGA_INMEDIATA';
+  deliveryDate: string;
+  progressPercent: number;
+  minDownPaymentPct: number;
+  installmentsCount: number;
+  brochurePdfUrl: string;
+}
 
 export interface PropertyFeatures {
   hasGenerator: boolean;      // Generador Eléctrico 100% de respaldo
@@ -44,6 +73,7 @@ export interface Property {
   sector: Sector;
   microzone: string;
   type: PropertyType;
+  operationType?: OperationType;
   price: number;
   areaBuild: number;
   areaLot: number;
@@ -61,6 +91,8 @@ export interface Property {
   agent: AgentInfo;
   logistics: LogisticsInfo;
   coordinates: MapCoordinates;
+  rentalDetails?: RentalDetails;
+  projectDetails?: ProjectDetails;
 }
 
 export interface FilterState {

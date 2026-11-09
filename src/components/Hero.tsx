@@ -1,7 +1,22 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Pause, Volume2, VolumeX, Leaf, Sparkles } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Leaf, MapPin, Briefcase, Tag, Search } from 'lucide-react';
+import { FilterState, Sector, PropertyType } from '../types/property';
 
-export const Hero: React.FC = () => {
+interface HeroProps {
+  filters?: FilterState;
+  onFilterChange?: (filters: FilterState) => void;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
+  onSearchSubmit?: () => void;
+}
+
+export const Hero: React.FC<HeroProps> = ({
+  filters,
+  onFilterChange,
+  searchQuery: _searchQuery = '',
+  onSearchChange: _onSearchChange,
+  onSearchSubmit
+}) => {
   const sectionRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -9,7 +24,7 @@ export const Hero: React.FC = () => {
   const [isInView, setIsInView] = useState<boolean>(true);
   const [hasEnteredViewport, setHasEnteredViewport] = useState<boolean>(true);
   const [isTabVisible, setIsTabVisible] = useState<boolean>(true);
-  const [isContentSkipped, setIsContentSkipped] = useState<boolean>(false);
+  const [, setIsContentSkipped] = useState<boolean>(false);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean>(false);
   const [isDataSaver, setIsDataSaver] = useState<boolean>(false);
@@ -19,6 +34,9 @@ export const Hero: React.FC = () => {
   const [isUserPaused, setIsUserPaused] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(true);
   const [isVideoLoaded, setIsVideoLoaded] = useState<boolean>(false);
+
+  // Operation Tab: 'comprar' | 'rentar' | 'proyectos'
+  const [activeTab, setActiveTab] = useState<'comprar' | 'rentar' | 'proyectos'>('comprar');
 
   // 1. Detect screen size (Mobile vs Desktop) and system preferences
   useEffect(() => {
@@ -42,7 +60,6 @@ export const Hero: React.FC = () => {
     mobileQuery.addEventListener('change', onMobileChange);
     motionQuery.addEventListener('change', onMotionChange);
 
-    // Check Data Saver mode if supported
     if ('connection' in navigator && (navigator as any).connection?.saveData) {
       setIsDataSaver(true);
     }
@@ -53,7 +70,7 @@ export const Hero: React.FC = () => {
     };
   }, []);
 
-  // 2. IntersectionObserver: observe visibility in viewport to halt playback & decoding when offscreen
+  // 2. IntersectionObserver for battery/GPU savings
   useEffect(() => {
     const section = sectionRef.current;
     if (!section) return;
@@ -69,7 +86,7 @@ export const Hero: React.FC = () => {
       },
       {
         threshold: [0, 0.05, 0.25],
-        rootMargin: '100px 0px 100px 0px' // Preload just before entering, pause immediately on exit
+        rootMargin: '100px 0px 100px 0px'
       }
     );
 
@@ -80,7 +97,19 @@ export const Hero: React.FC = () => {
     };
   }, []);
 
-  // 3. contentvisibilityautostatechange listener (Modern Web Best Practice for background efficiency)
+  // 3. Page visibility listener
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      setIsTabVisible(document.visibilityState === 'visible');
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, []);
+
+  // 4. Content visibility change listener
   useEffect(() => {
     const section = sectionRef.current;
     if (!section) return;
@@ -92,59 +121,37 @@ export const Hero: React.FC = () => {
     };
 
     section.addEventListener('contentvisibilityautostatechange', handleContentVisibility);
-
     return () => {
       section.removeEventListener('contentvisibilityautostatechange', handleContentVisibility);
     };
   }, []);
 
-  // 4. Page Visibility API: pause when user switches browser tab or minimizes window
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      setIsTabVisible(document.visibilityState === 'visible');
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, []);
-
-  // Determine if video should actively run
-  const shouldPlay =
-    isInView &&
-    isTabVisible &&
-    !isContentSkipped &&
-    !isUserPaused &&
-    !prefersReducedMotion &&
-    !isDataSaver &&
-    hasEnteredViewport;
-
-  // 5. Sync playback with calculated power/visibility state
+  // 5. Autoplay control engine
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
+
+    const shouldPlay =
+      isInView &&
+      isTabVisible &&
+      !isUserPaused &&
+      !prefersReducedMotion &&
+      !isDataSaver;
 
     if (shouldPlay) {
       const playPromise = video.play();
       if (playPromise !== undefined) {
         playPromise
-          .then(() => {
-            setIsPlaying(true);
-          })
-          .catch(() => {
-            // Autoplay policy or low battery mode
-            setIsPlaying(false);
-          });
+          .then(() => setIsPlaying(true))
+          .catch(() => setIsPlaying(false));
       }
     } else {
       video.pause();
       setIsPlaying(false);
     }
-  }, [shouldPlay]);
+  }, [isInView, isTabVisible, isUserPaused, prefersReducedMotion, isDataSaver]);
 
-  // Handle manual play/pause toggle
+  // Handle manual video toggle
   const togglePlayPause = useCallback(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -161,7 +168,6 @@ export const Hero: React.FC = () => {
     }
   }, [isPlaying]);
 
-  // Handle manual audio mute/unmute
   const toggleMute = useCallback(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -170,7 +176,6 @@ export const Hero: React.FC = () => {
     setIsMuted(nextMuted);
   }, []);
 
-  // Poster and Video Assets depending on viewport
   const posterWebP = isMobile
     ? '/videos/hero-mobile-poster.webp'
     : '/videos/hero-desktop-poster.webp';
@@ -188,10 +193,9 @@ export const Hero: React.FC = () => {
     : '/videos/hero-desktop.mp4';
 
   return (
-    <section ref={sectionRef} className="hero-section" aria-label="Introducción Valle & Urbe">
+    <section ref={sectionRef} className="hero-section" aria-label="Introducción Propiedades Premier">
       {/* Background Media Container */}
       <div className="hero-media-wrapper" aria-hidden="true">
-        {/* Instant lightweight poster image (prevents layout shift & FOUC) */}
         <picture>
           <source srcSet={posterWebP} type="image/webp" />
           <img
@@ -203,7 +207,6 @@ export const Hero: React.FC = () => {
           />
         </picture>
 
-        {/* Video Element with Lazy Rendering and Resource Saving */}
         {hasEnteredViewport && !isDataSaver && !prefersReducedMotion && (
           <video
             ref={videoRef}
@@ -224,19 +227,18 @@ export const Hero: React.FC = () => {
           </video>
         )}
 
-        {/* Luxury Vignette and Contrast Overlay */}
         <div className="hero-overlay" />
       </div>
 
-      {/* Floating Resource-Saving & Video Control Bar */}
+      {/* Floating Video Control Bar */}
       <div className="hero-video-eco-controls">
         <div className="hero-eco-badge">
           <span className={`hero-eco-dot ${isPlaying ? 'active' : 'idle'}`} />
           <Leaf size={11} className="hero-eco-icon" />
           <span className="hero-eco-text">
             {isPlaying
-              ? (isMobile ? 'Móvil Optimizado · 60fps' : 'WebM 4K · Ahorro Activo')
-              : 'Pausa Eco · 0% GPU'}
+              ? (isMobile ? 'Móvil 60fps' : 'WebM 4K Activo')
+              : 'Pausa Eco'}
           </span>
         </div>
 
@@ -245,8 +247,7 @@ export const Hero: React.FC = () => {
             type="button"
             className="hero-ctrl-btn"
             onClick={togglePlayPause}
-            aria-label={isPlaying ? 'Pausar video de fondo' : 'Reproducir video de fondo'}
-            title={isPlaying ? 'Pausar video (Ahorro de batería)' : 'Reproducir video'}
+            aria-label={isPlaying ? 'Pausar video' : 'Reproducir video'}
           >
             {isPlaying ? <Pause size={13} /> : <Play size={13} />}
           </button>
@@ -254,43 +255,229 @@ export const Hero: React.FC = () => {
             type="button"
             className="hero-ctrl-btn"
             onClick={toggleMute}
-            aria-label={isMuted ? 'Activar audio' : 'Silenciar audio'}
-            title={isMuted ? 'Activar sonido' : 'Silenciar'}
+            aria-label={isMuted ? 'Activar audio' : 'Silenciar'}
           >
             {isMuted ? <VolumeX size={13} /> : <Volume2 size={13} />}
           </button>
         </div>
       </div>
 
-      {/* Hero Content (Above video and overlays) */}
-      <div className="hero-content">
-        <div className="hero-tagline">
-          <Sparkles size={12} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px', color: 'var(--accent-gold)' }} />
-          Boutique PropTech & Curaduría Notariada · Quito 2026
-        </div>
-        <h1 className="hero-title">
-          Propiedades de autor en Quito y sus valles, con certeza legal total.
+      {/* Hero Content matching Mockup 1:1 */}
+      <div className="hero-content" style={{ maxWidth: '1100px', margin: '0 auto', textAlign: 'center' }}>
+        <h1 className="hero-title" style={{ fontSize: 'clamp(2.2rem, 4vw, 3.4rem)', fontWeight: 800, color: '#FFFFFF', lineHeight: 1.15, marginBottom: '0.75rem' }}>
+          Encuentra la propiedad ideal en <span style={{ color: '#FEA004' }}>Quito y sus valles</span>
         </h1>
-        <p className="hero-subtitle">
-          Casas, quintas y penthouses en Cumbayá, Puembo, González Suárez y La Carolina. Cero listados repetidos, títulos saneados y asesoría notarial directa.
+        <p className="hero-subtitle" style={{ fontSize: 'clamp(1rem, 1.5vw, 1.15rem)', color: 'rgba(255,255,255,0.92)', maxWidth: '750px', margin: '0 auto 2.2rem', fontWeight: 500 }}>
+          Casas, departamentos, oficinas, locales, terrenos y más. Compra, renta o invierte con expertos.
         </p>
 
-        <div className="hero-metrics">
-          <div style={{ textAlign: 'center' }}>
-            <div className="metric-val">$48M+</div>
-            <div className="metric-lbl">Portafolio Auditado</div>
+        {/* Floating Search Card matching Mockup */}
+        <div className="hero-search-card" style={{
+          background: '#FFFFFF',
+          borderRadius: '18px',
+          boxShadow: '0 20px 40px rgba(18, 25, 38, 0.22)',
+          padding: '1.25rem 1.5rem',
+          maxWidth: '960px',
+          margin: '0 auto',
+          textAlign: 'left'
+        }}>
+          {/* Operation Tabs: Comprar | Rentar */}
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
+            <button
+              onClick={() => setActiveTab('comprar')}
+              style={{
+                background: activeTab === 'comprar' ? '#FEA004' : '#F1F3F5',
+                color: activeTab === 'comprar' ? '#FFFFFF' : '#213145',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '0.5rem 1.25rem',
+                fontSize: '0.9rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              Comprar
+            </button>
+            <button
+              onClick={() => setActiveTab('rentar')}
+              style={{
+                background: activeTab === 'rentar' ? '#FEA004' : '#F1F3F5',
+                color: activeTab === 'rentar' ? '#FFFFFF' : '#213145',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '0.5rem 1.25rem',
+                fontSize: '0.9rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              Rentar
+            </button>
+            <button
+              onClick={() => setActiveTab('proyectos')}
+              style={{
+                background: activeTab === 'proyectos' ? '#FEA004' : '#F1F3F5',
+                color: activeTab === 'proyectos' ? '#FFFFFF' : '#213145',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '0.5rem 1.25rem',
+                fontSize: '0.9rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              Proyectos
+            </button>
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <div className="metric-val">100%</div>
-            <div className="metric-lbl">Mandatos Exclusivos</div>
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <div className="metric-val">&lt; 15 min</div>
-            <div className="metric-lbl">Respuesta WhatsApp</div>
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <div className="metric-val">0 Días</div>
-            <div className="metric-lbl">En Limbo Legal</div>
+
+          {/* Form Selectors Row matching Mockup */}
+          <div className="hero-search-selectors-grid">
+            {/* Ubicación Dropdown */}
+            <div style={{
+              background: '#F8F9FA',
+              border: '1px solid #E2E8F0',
+              borderRadius: '10px',
+              padding: '0.5rem 0.85rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.65rem'
+            }}>
+              <MapPin size={18} color="#FEA004" style={{ flexShrink: 0 }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#718096', textTransform: 'uppercase' }}>
+                  Ubicación
+                </div>
+                <select
+                  value={filters?.sector || 'ALL'}
+                  onChange={(e) => onFilterChange && filters && onFilterChange({ ...filters, sector: e.target.value as Sector | 'ALL' })}
+                  style={{
+                    width: '100%',
+                    background: 'none',
+                    border: 'none',
+                    outline: 'none',
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                    color: '#213145',
+                    cursor: 'pointer',
+                    padding: 0
+                  }}
+                >
+                  <option value="ALL">Quito, Cumbayá, Valle...</option>
+                  <option value="Cumbayá">Cumbayá</option>
+                  <option value="Puembo">Puembo</option>
+                  <option value="González Suárez">González Suárez</option>
+                  <option value="La Carolina">La Carolina</option>
+                  <option value="Tumbaco">Tumbaco</option>
+                  <option value="Nayón">Nayón</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Tipo de propiedad Dropdown */}
+            <div style={{
+              background: '#F8F9FA',
+              border: '1px solid #E2E8F0',
+              borderRadius: '10px',
+              padding: '0.5rem 0.85rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.65rem'
+            }}>
+              <Briefcase size={18} color="#FEA004" style={{ flexShrink: 0 }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#718096', textTransform: 'uppercase' }}>
+                  Tipo de propiedad
+                </div>
+                <select
+                  value={filters?.type || 'ALL'}
+                  onChange={(e) => onFilterChange && filters && onFilterChange({ ...filters, type: e.target.value as PropertyType | 'ALL' })}
+                  style={{
+                    width: '100%',
+                    background: 'none',
+                    border: 'none',
+                    outline: 'none',
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                    color: '#213145',
+                    cursor: 'pointer',
+                    padding: 0
+                  }}
+                >
+                  <option value="ALL">Todos los tipos</option>
+                  <option value="Casa">Casas & Villas</option>
+                  <option value="Suite">Departamentos & Suites</option>
+                  <option value="Penthouse">Penthouses & Oficinas</option>
+                  <option value="Terreno">Terrenos & Lotes</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Precio Dropdown */}
+            <div style={{
+              background: '#F8F9FA',
+              border: '1px solid #E2E8F0',
+              borderRadius: '10px',
+              padding: '0.5rem 0.85rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.65rem'
+            }}>
+              <Tag size={18} color="#FEA004" style={{ flexShrink: 0 }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#718096', textTransform: 'uppercase' }}>
+                  Precio
+                </div>
+                <select
+                  value={filters?.maxPrice || 1000000}
+                  onChange={(e) => onFilterChange && filters && onFilterChange({ ...filters, maxPrice: parseInt(e.target.value, 10) })}
+                  style={{
+                    width: '100%',
+                    background: 'none',
+                    border: 'none',
+                    outline: 'none',
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                    color: '#213145',
+                    cursor: 'pointer',
+                    padding: 0
+                  }}
+                >
+                  <option value="1000000">Desde - Hasta</option>
+                  <option value="200000">Hasta $200.000 USD</option>
+                  <option value="400000">Hasta $400.000 USD</option>
+                  <option value="600000">Hasta $600.000 USD</option>
+                  <option value="800000">Hasta $800.000 USD</option>
+                  <option value="1000000">Hasta $1.000.000 USD</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Primary Orange Search Button matching Mockup */}
+            <button
+              onClick={() => onSearchSubmit && onSearchSubmit()}
+              style={{
+                background: '#FEA004',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: '10px',
+                padding: '0.85rem 1.75rem',
+                fontSize: '0.95rem',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+                boxShadow: '0 4px 14px rgba(254, 160, 4, 0.4)',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <Search size={18} />
+              <span>Buscar</span>
+            </button>
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Property } from '../types/property';
-import { Heart, MessageSquare, Scale, Eye, Share2, Check } from 'lucide-react';
+import { Heart, MessageSquare, Scale, Eye, Share2, Check, Bell } from 'lucide-react';
+import { PriceOpportunityBadge } from './PriceOpportunityBadge';
 
 interface PropertyCardProps {
   property: Property;
@@ -12,6 +13,7 @@ interface PropertyCardProps {
   onSelectProperty: (property: Property) => void;
   onContactWhatsApp: (property: Property) => void;
   onShare: (property: Property) => void;
+  onOpenAlert?: (property: Property) => void;
 }
 
 export const PropertyCard: React.FC<PropertyCardProps> = ({
@@ -23,7 +25,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   onQuickView,
   onSelectProperty,
   onContactWhatsApp,
-  onShare
+  onShare,
+  onOpenAlert
 }) => {
   const pricePerSqm = Math.round(property.price / property.areaBuild);
   const formattedPrice = new Intl.NumberFormat('en-US', {
@@ -49,8 +52,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           style={{ cursor: 'pointer' }}
         />
 
-        {/* Badges Overlay */}
+        {/* Badges Overlay matching Mockup */}
         <div className="media-badges">
+          <span className="badge-tag" style={{ background: '#FEA004', color: '#FFFFFF', fontWeight: 800, letterSpacing: '0.04em' }}>
+            {property.price < 5000 ? 'En Renta' : 'En Venta'}
+          </span>
           <span className="badge-tag badge-verified">✓ Registro DMQ Auditado</span>
           {property.features.hasGenerator && (
             <span className="badge-tag badge-generator">⚡ Generador 100%</span>
@@ -62,6 +68,21 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 
         {/* Action Pills Overlay */}
         <div className="media-actions-overlay">
+          {/* Price Alert Bell Button */}
+          {onOpenAlert && (
+            <button
+              className="media-action-pill"
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenAlert(property);
+              }}
+              title="Avisarme si baja de precio"
+              aria-label={`Avisarme si baja de precio ${property.title}`}
+            >
+              <Bell size={14} />
+            </button>
+          )}
+
           {/* Quick View Button */}
           <button
             className="media-action-pill"
@@ -138,9 +159,15 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           {property.title}
         </h3>
 
-        <div className="card-pricing">
-          <div className="price-main">{formattedPrice}</div>
-          <div className="price-sqm">{formattedPricePerSqm} / m² constr.</div>
+        {/* Price & Opportunity Badge */}
+        <div className="card-pricing" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <div>
+            <div className="price-main">{formattedPrice}</div>
+            <div className="price-sqm">{formattedPricePerSqm} / m² constr.</div>
+          </div>
+          {property.price > 5000 && (
+            <PriceOpportunityBadge price={property.price} areaBuild={property.areaBuild} sector={property.sector} compact />
+          )}
         </div>
 
         <div className="card-specs">

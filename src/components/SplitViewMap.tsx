@@ -157,6 +157,30 @@ export const SplitViewMap: React.FC<SplitViewMapProps> = ({
                 </div>
               ))}
             </div>
+            {/* Floating VER LISTA button matching Wireframe 03 */}
+            <div style={{ position: 'absolute', bottom: '1.5rem', left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}>
+              <button
+                onClick={onSwitchToCatalog}
+                style={{
+                  background: '#FEA004',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '999px',
+                  padding: '0.65rem 1.85rem',
+                  fontSize: '0.9rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  boxShadow: '0 6px 20px rgba(254, 160, 4, 0.45)',
+                  letterSpacing: '0.05em',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <span>VER LISTA</span>
+              </button>
+            </div>
           </div>
 
           <div className="map-legend">

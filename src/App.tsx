@@ -4,10 +4,18 @@ import { ToastMessage } from './types/toast';
 import { User, UserSubscription, PlanCode, AuthState } from './types/auth';
 import { PROPERTIES } from './data/properties';
 import { authService, MEMBERSHIP_PLANS, DEMO_USERS } from './services/authService';
+import { propertyService } from './services/propertyService';
 
+// Custom Hooks for SOLID & Multi-User State Isolation
+import { useUserFavorites } from './hooks/useUserFavorites';
+import { usePropertyComparison } from './hooks/usePropertyComparison';
+
+import { MapPin } from 'lucide-react';
 import { TopMicroBar } from './components/TopMicroBar';
-import { Header } from './components/Header';
+import { Header, SiteView } from './components/Header';
 import { Hero } from './components/Hero';
+import { CategoryBar } from './components/CategoryBar';
+import { TrustBar } from './components/TrustBar';
 import { FilterConsole } from './components/FilterConsole';
 import { ActiveFilterChips, SortOption, ViewMode } from './components/ActiveFilterChips';
 import { PropertyCard } from './components/PropertyCard';
@@ -30,14 +38,41 @@ import { UserProfileModal } from './components/UserProfileModal';
 import { MembershipPlansModal } from './components/MembershipPlansModal';
 import { PublishPropertyModal } from './components/PublishPropertyModal';
 
-const FAVORITES_STORAGE_KEY = 'valle_urbe_saved_favorites_v1';
+// Dedicated Views for 7 Navbar Pillars
+import { RentalsView } from './views/RentalsView';
+import { ProjectsView } from './views/ProjectsView';
+import { ServicesView } from './views/ServicesView';
+import { AboutView } from './views/AboutView';
+import { BlogView } from './views/BlogView';
+import { ContactView } from './views/ContactView';
+
+// Dedicated Modals for 10 Sitemap Pillars & Competitor Value-Add Tools
+import { AboutUsModal } from './components/AboutUsModal';
+import { ResourcesCalculatorsModal } from './components/ResourcesCalculatorsModal';
+import { AgentsDirectoryModal } from './components/AgentsDirectoryModal';
+import { TikTokVideoReelModal } from './components/TikTokVideoReelModal';
+import { ContactModal } from './components/ContactModal';
+import { PaymentCheckoutModal } from './components/PaymentCheckoutModal';
+import { PropertyValuatorModal } from './components/PropertyValuatorModal';
+import { PriceAlertModal } from './components/PriceAlertModal';
+import { Bell } from 'lucide-react';
+import { AgentProfile } from './services/agentService';
+import { LegalTemplate } from './services/resourcesService';
+import { PaymentIntent } from './services/paymentService';
 
 export const App: React.FC = () => {
   // Navigation & View States
-  const [activeView, setActiveView] = useState<'catalog' | 'split' | 'detail'>('catalog');
+  const [activeView, setActiveView] = useState<SiteView>('comprar');
+  const [previousView, setPreviousView] = useState<SiteView>('comprar');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [propertyList, setPropertyList] = useState<Property[]>(PROPERTIES);
   const [selectedProperty, setSelectedProperty] = useState<Property>(PROPERTIES[0]);
+
+  // Competitor Intelligence Value-Add: Valuator IA & Price Alert States
+  const [isValuatorOpen, setIsValuatorOpen] = useState<boolean>(false);
+  const [isAlertModalOpen, setIsAlertModalOpen] = useState<boolean>(false);
+  const [alertTargetProperty, setAlertTargetProperty] = useState<Property | null>(null);
+  const [publishPrefill, setPublishPrefill] = useState<any>(null);
 
   // Sprint 1: Auth & User Session State
   const [authState, setAuthState] = useState<AuthState>(() => {
@@ -70,17 +105,27 @@ export const App: React.FC = () => {
   const [isPlansModalOpen, setIsPlansModalOpen] = useState<boolean>(false);
   const [isPublishModalOpen, setIsPublishModalOpen] = useState<boolean>(false);
 
-  // Wishlist & Comparison States
-  const [savedPropertyIds, setSavedPropertyIds] = useState<string[]>(() => {
-    try {
-      const stored = localStorage.getItem(FAVORITES_STORAGE_KEY);
-      return stored ? JSON.parse(stored) : ['VU-CUM-048', 'VU-GON-012'];
-    } catch {
-      return ['VU-CUM-048', 'VU-GON-012'];
-    }
-  });
+  // Dedicated Modals for Sitemap Pillars
+  const [isAboutOpen, setIsAboutOpen] = useState<boolean>(false);
+  const [isResourcesOpen, setIsResourcesOpen] = useState<boolean>(false);
+  const [resourcesInitialTab, setResourcesInitialTab] = useState<'calculators' | 'blog' | 'documents'>('calculators');
+  const [isAgentsOpen, setIsAgentsOpen] = useState<boolean>(false);
+  const [isTikTokOpen, setIsTikTokOpen] = useState<boolean>(false);
+  const [isContactOpen, setIsContactOpen] = useState<boolean>(false);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
+  const [pendingPlan, setPendingPlan] = useState<{ code: PlanCode; name: string; amount: number } | null>(null);
 
-  const [comparedPropertyIds, setComparedPropertyIds] = useState<string[]>([]);
+  // Multi-User Isolated Wishlist Storage (Scoped by User ID)
+  const { savedPropertyIds, toggleFavorite: toggleFavScoped, clearFavorites } = useUserFavorites(authState.user?.id);
+
+  // Comparison State & Heuristic 3-Limit
+  const { 
+    comparedPropertyIds, 
+    toggleCompare: toggleCompScoped, 
+    removeProperty: removeComparedProperty, 
+    clearCompare, 
+    loadPropertiesForCompare 
+  } = usePropertyComparison();
 
   // Dialogs & Drawer States
   const [isFavoritesDrawerOpen, setIsFavoritesDrawerOpen] = useState<boolean>(false);
@@ -123,15 +168,6 @@ export const App: React.FC = () => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  // Save favorites to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(savedPropertyIds));
-    } catch (e) {
-      console.warn('LocalStorage error:', e);
-    }
-  }, [savedPropertyIds]);
-
   // Global Keyboard Shortcuts (Esc closes any open modal)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -140,6 +176,12 @@ export const App: React.FC = () => {
         if (isProfileModalOpen) { setIsProfileModalOpen(false); return; }
         if (isPlansModalOpen) { setIsPlansModalOpen(false); return; }
         if (isPublishModalOpen) { setIsPublishModalOpen(false); return; }
+        if (isAboutOpen) { setIsAboutOpen(false); return; }
+        if (isResourcesOpen) { setIsResourcesOpen(false); return; }
+        if (isAgentsOpen) { setIsAgentsOpen(false); return; }
+        if (isTikTokOpen) { setIsTikTokOpen(false); return; }
+        if (isContactOpen) { setIsContactOpen(false); return; }
+        if (isCheckoutOpen) { setIsCheckoutOpen(false); return; }
         if (isCompareModalOpen) { setIsCompareModalOpen(false); return; }
         if (isFavoritesDrawerOpen) { setIsFavoritesDrawerOpen(false); return; }
         if (quickViewProperty) { setQuickViewProperty(null); return; }
@@ -147,7 +189,7 @@ export const App: React.FC = () => {
         if (isScheduleOpen) { setIsScheduleOpen(false); return; }
       }
 
-      // '/' focuses the search bar if not in input
+      // '/' focuses search bar
       if (e.key === '/' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
         e.preventDefault();
         const searchInput = document.getElementById('main-property-search');
@@ -169,59 +211,10 @@ export const App: React.FC = () => {
     isScheduleOpen
   ]);
 
-  // Filtered & Sorted Properties Engine
+  // High Performance Memoized Filter & Sort Engine via PropertyService (SRP / OCP)
   const filteredAndSortedProperties = useMemo(() => {
-    let result = propertyList.filter((p) => {
-      // Search query text matching
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase().trim();
-        const matchesTitle = p.title.toLowerCase().includes(query);
-        const matchesSector = p.sector.toLowerCase().includes(query);
-        const matchesMicrozone = p.microzone.toLowerCase().includes(query);
-        const matchesDesc = p.description.toLowerCase().includes(query);
-        const matchesType = p.type.toLowerCase().includes(query);
-        const matchesId = p.id.toLowerCase().includes(query);
-        if (!matchesTitle && !matchesSector && !matchesMicrozone && !matchesDesc && !matchesType && !matchesId) {
-          return false;
-        }
-      }
-
-      // Dropdown filters
-      if (filters.sector !== 'ALL' && p.sector !== filters.sector) return false;
-      if (filters.type !== 'ALL' && p.type !== filters.type) return false;
-      if (p.price > filters.maxPrice) return false;
-
-      // Specialized Quito criteria
-      if (filters.hasGenerator && !p.features.hasGenerator) return false;
-      if (filters.hasMetro && !p.features.hasMetro) return false;
-      if (filters.hasDoubleGate && !p.features.hasDoubleGate) return false;
-      if (filters.isValleyClimate && !p.features.isValleyClimate) return false;
-      if (filters.biessEligible && !p.features.biessEligible) return false;
-      if (filters.isAirbnb && !p.features.isAirbnb) return false;
-
-      return true;
-    });
-
-    // Sorting
-    switch (sortOption) {
-      case 'price-asc':
-        result = [...result].sort((a, b) => a.price - b.price);
-        break;
-      case 'price-desc':
-        result = [...result].sort((a, b) => b.price - a.price);
-        break;
-      case 'area-desc':
-        result = [...result].sort((a, b) => b.areaBuild - a.areaBuild);
-        break;
-      case 'efficiency':
-        result = [...result].sort((a, b) => (a.price / a.areaBuild) - (b.price / b.areaBuild));
-        break;
-      case 'featured':
-      default:
-        break;
-    }
-
-    return result;
+    const filtered = propertyService.filterProperties(propertyList, filters, searchQuery);
+    return propertyService.sortProperties(filtered, sortOption);
   }, [propertyList, filters, searchQuery, sortOption]);
 
   // Compared Properties Objects
@@ -298,15 +291,31 @@ export const App: React.FC = () => {
       setIsAuthModalOpen(true);
       return;
     }
-    const updatedSub = await authService.upgradeSubscription(authState.user, planCode);
+    if (planCode === 'FREE') {
+      const updatedSub = await authService.upgradeSubscription(authState.user, 'FREE');
+      setAuthState((prev) => ({ ...prev, subscription: updatedSub }));
+      setIsPlansModalOpen(false);
+      addToast('Plan Esencial Activado', 'Dispones de 1 propiedad por 3 meses.', 'success');
+      return;
+    }
+    const amount = planCode === 'PRO_AGENT' ? 49 : 99;
+    const name = planCode === 'PRO_AGENT' ? 'Plan Profesional' : 'Plan Empresa';
+    setPendingPlan({ code: planCode, name, amount });
+    setIsCheckoutOpen(true);
+  };
+
+  const handlePaymentSuccess = async (intent: PaymentIntent) => {
+    if (!authState.user) return;
+    const updatedSub = await authService.upgradeSubscription(authState.user, intent.planCode);
     setAuthState((prev) => ({
       ...prev,
       subscription: updatedSub
     }));
+    setIsCheckoutOpen(false);
     setIsPlansModalOpen(false);
     addToast(
-      'Membresía Actualizada',
-      `Has activado el plan: ${updatedSub.plan.name}`,
+      '¡Pago Confirmado y Membresía Activa!',
+      `${intent.planName} activado. Comprobante: ${intent.receiptNumber}`,
       'success'
     );
   };
@@ -333,57 +342,48 @@ export const App: React.FC = () => {
   // Property Actions
   const toggleFavorite = (id: string) => {
     const prop = propertyList.find((p) => p.id === id);
-    setSavedPropertyIds((prev) => {
-      const exists = prev.includes(id);
-      if (exists) {
-        addToast('Removido de favoritos', prop ? prop.title : undefined, 'info');
-        return prev.filter((item) => item !== id);
-      } else {
-        addToast('Guardado en tu portafolio privado', prop ? prop.title : undefined, 'bookmark');
-        return [...prev, id];
-      }
-    });
+    const { isAdded } = toggleFavScoped(id);
+    if (isAdded) {
+      addToast('Guardado en tu portafolio privado', prop ? prop.title : undefined, 'bookmark');
+    } else {
+      addToast('Removido de favoritos', prop ? prop.title : undefined, 'info');
+    }
   };
 
   const toggleCompare = (property: Property) => {
-    setComparedPropertyIds((prev) => {
-      if (prev.includes(property.id)) {
-        addToast('Removida del comparador', property.title, 'info');
-        return prev.filter((id) => id !== property.id);
-      } else {
-        if (prev.length >= 3) {
-          addToast(
-            'Límite de comparación alcanzado',
-            'Puedes comparar hasta 3 propiedades simultáneamente.',
-            'warning'
-          );
-          return prev;
-        }
-        addToast(
-          'Agregada al comparador',
-          `${property.title} (${prev.length + 1} de 3)`,
-          'compare'
-        );
-        return [...prev, property.id];
-      }
-    });
+    const result = toggleCompScoped(property);
+    if (!result.success) {
+      addToast(
+        'Límite de comparación alcanzado',
+        'Puedes comparar hasta 3 propiedades simultáneamente.',
+        'warning'
+      );
+    } else if (result.isAdded) {
+      addToast(
+        'Agregada al comparador',
+        `${property.title} (${result.count} de 3)`,
+        'compare'
+      );
+    } else {
+      addToast('Removida del comparador', property.title, 'info');
+    }
   };
 
   const handleRemoveFromCompare = (id: string) => {
     const prop = propertyList.find((p) => p.id === id);
-    setComparedPropertyIds((prev) => prev.filter((item) => item !== id));
+    removeComparedProperty(id);
     if (prop) {
       addToast('Removida del comparador', prop.title, 'info');
     }
   };
 
   const handleClearCompare = () => {
-    setComparedPropertyIds([]);
+    clearCompare();
     addToast('Comparador vaciado', 'Has removido las propiedades en comparación.', 'info');
   };
 
   const handleShareProperty = (property: Property) => {
-    if (navigator.clipboard) {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
       navigator.clipboard.writeText(
         `${window.location.origin}/#ref=${property.id} · ${property.title} - $${property.price.toLocaleString('en-US')}`
       );
@@ -397,6 +397,7 @@ export const App: React.FC = () => {
 
   const handleSelectProperty = (property: Property) => {
     setSelectedProperty(property);
+    setPreviousView(activeView !== 'detail' ? activeView : 'comprar');
     setActiveView('detail');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -442,7 +443,7 @@ export const App: React.FC = () => {
 
   const handleCompareFavorites = () => {
     const idsToCompare = savedPropertyIds.slice(0, 3);
-    setComparedPropertyIds(idsToCompare);
+    loadPropertiesForCompare(idsToCompare);
     setIsFavoritesDrawerOpen(false);
     setIsCompareModalOpen(true);
     addToast('Comparando favoritos', `Cargadas ${idsToCompare.length} propiedades en la matriz.`, 'compare');
@@ -451,6 +452,19 @@ export const App: React.FC = () => {
   const handleContactWhatsAppPortfolio = () => {
     setIsFavoritesDrawerOpen(false);
     setIsWhatsAppOpen(true);
+  };
+
+  const handleOpenValuator = () => setIsValuatorOpen(true);
+
+  const handleOpenAlert = (target?: Property) => {
+    setAlertTargetProperty(target || null);
+    setIsAlertModalOpen(true);
+  };
+
+  const handleValuatorPublish = (prefillData: any) => {
+    setPublishPrefill(prefillData);
+    setIsPublishModalOpen(true);
+    addToast('Datos cargados al formulario', 'Tu estimación de avalúo ha sido transferida a la publicación.', 'success');
   };
 
   // If mobile device simulator is open
@@ -485,7 +499,8 @@ export const App: React.FC = () => {
         onNavigate={(view) => {
           setActiveView(view);
           if (view === 'split') setViewMode('map');
-          if (view === 'catalog') setViewMode('grid');
+          if (view === 'comprar' || view === 'catalog') setViewMode('grid');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
         onOpenFavorites={() => setIsFavoritesDrawerOpen(true)}
         onOpenCompare={() => setIsCompareModalOpen(true)}
@@ -495,13 +510,44 @@ export const App: React.FC = () => {
         onOpenProfile={() => setIsProfileModalOpen(true)}
         onOpenPlans={() => setIsPlansModalOpen(true)}
         onOpenPublish={() => setIsPublishModalOpen(true)}
+        onOpenAbout={() => setActiveView('nosotros')}
+        onOpenResources={(tab) => {
+          if (tab === 'blog') {
+            setActiveView('blog');
+          } else {
+            if (tab) setResourcesInitialTab(tab);
+            setIsResourcesOpen(true);
+          }
+        }}
+        onOpenAgents={() => setIsAgentsOpen(true)}
+        onOpenTikTok={() => setIsTikTokOpen(true)}
+        onOpenContact={() => setActiveView('contacto')}
+        onOpenValuator={handleOpenValuator}
+        onOpenPriceAlert={() => handleOpenAlert()}
       />
 
-      {/* Hero Header */}
-      {activeView === 'catalog' && <Hero />}
+      {/* Hero Header matching Mockup (Exclusive to Comprar / Catalog view) */}
+      {(activeView === 'catalog' || activeView === 'comprar') && (
+        <>
+          <Hero
+            filters={filters}
+            onFilterChange={setFilters}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            onSearchSubmit={() => {
+              const el = document.getElementById('catalog-results-heading');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }}
+          />
+          <CategoryBar
+            selectedType={filters.type}
+            onSelectCategory={(type) => setFilters((prev) => ({ ...prev, type }))}
+          />
+        </>
+      )}
 
-      {/* Main Filter Console */}
-      {activeView !== 'detail' && (
+      {/* Main Filter Console (Exclusive to Comprar / Catalog view) */}
+      {(activeView === 'catalog' || activeView === 'comprar') && (
         <FilterConsole
           filters={filters}
           searchQuery={searchQuery}
@@ -516,7 +562,8 @@ export const App: React.FC = () => {
 
       {/* Main Content Area */}
       <main className="main-wrapper">
-        {activeView === 'catalog' && (
+        {/* View 1: Comprar (Flagship Sales Catalog) */}
+        {(activeView === 'catalog' || activeView === 'comprar') && (
           <div>
             {/* Active Chips & Sorting Bar */}
             <ActiveFilterChips
@@ -554,6 +601,68 @@ export const App: React.FC = () => {
               </div>
             ) : (
               <>
+                {/* Propiedades destacadas Section Header matching Mockup & Plusvalía Alerta */}
+                <div id="catalog-results-heading" style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  margin: '1.75rem 0 1rem',
+                  padding: '0 0.25rem',
+                  flexWrap: 'wrap',
+                  gap: '0.75rem'
+                }}>
+                  <h2 style={{
+                    fontSize: '1.5rem',
+                    fontWeight: 800,
+                    color: '#213145',
+                    margin: 0,
+                    letterSpacing: '-0.02em'
+                  }}>
+                    Propiedades destacadas
+                  </h2>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <button
+                      onClick={() => handleOpenAlert()}
+                      style={{
+                        background: '#FFF7ED',
+                        border: '1px solid #FED7AA',
+                        borderRadius: '999px',
+                        padding: '0.4rem 0.85rem',
+                        color: '#D97706',
+                        fontWeight: 700,
+                        fontSize: '0.82rem',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.35rem',
+                        transition: 'all 0.15s ease'
+                      }}
+                      title="Crear alerta de nuevas publicaciones o bajadas de precio"
+                    >
+                      <Bell size={14} color="#D97706" />
+                      <span>Crear Alerta</span>
+                    </button>
+
+                    <button
+                      onClick={handleResetFilters}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#FEA004',
+                        fontWeight: 700,
+                        fontSize: '0.92rem',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.35rem'
+                      }}
+                    >
+                      <span>Ver todas las propiedades</span>
+                      <span style={{ fontSize: '1.1rem' }}>→</span>
+                    </button>
+                  </div>
+                </div>
+
                 {/* View 1: Card Grid */}
                 {viewMode === 'grid' && (
                   <div className="properties-grid">
@@ -569,6 +678,7 @@ export const App: React.FC = () => {
                         onSelectProperty={handleSelectProperty}
                         onContactWhatsApp={handleOpenWhatsApp}
                         onShare={handleShareProperty}
+                        onOpenAlert={(prop) => handleOpenAlert(prop)}
                       />
                     ))}
                   </div>
@@ -587,12 +697,108 @@ export const App: React.FC = () => {
                     onContactWhatsApp={handleOpenWhatsApp}
                   />
                 )}
+
+                {/* Floating VER MAPA button matching Wireframe 04 */}
+                <button
+                  onClick={() => {
+                    setActiveView('split');
+                    setViewMode('map');
+                  }}
+                  aria-label="Ver mapa interactivo"
+                  style={{
+                    position: 'fixed',
+                    bottom: '28px',
+                    right: '28px',
+                    zIndex: 80,
+                    background: '#FEA004',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '30px',
+                    padding: '0.85rem 1.6rem',
+                    fontWeight: 800,
+                    fontSize: '0.88rem',
+                    letterSpacing: '0.04em',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    boxShadow: '0 8px 24px rgba(254, 160, 4, 0.45)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+                  }}
+                >
+                  <MapPin size={18} />
+                  <span>VER MAPA</span>
+                </button>
               </>
             )}
           </div>
         )}
 
-        {/* View: Split Vector Cartography */}
+        {/* View 2: Rentar (Dedicated Rental Portal) */}
+        {activeView === 'rentar' && (
+          <RentalsView
+            properties={propertyList}
+            savedPropertyIds={savedPropertyIds}
+            comparedPropertyIds={comparedPropertyIds}
+            onToggleFavorite={toggleFavorite}
+            onToggleCompare={toggleCompare}
+            onQuickView={(prop) => setQuickViewProperty(prop)}
+            onSelectProperty={handleSelectProperty}
+            onContactWhatsApp={handleOpenWhatsApp}
+            onShare={handleShareProperty}
+            onOpenSchedule={handleOpenSchedule}
+          />
+        )}
+
+        {/* View 3: Proyectos (Dedicated Off-Plan New Developments) */}
+        {activeView === 'proyectos' && (
+          <ProjectsView
+            properties={propertyList}
+            onSelectProperty={handleSelectProperty}
+            onContactWhatsApp={handleOpenWhatsApp}
+            onOpenSchedule={handleOpenSchedule}
+            onShare={handleShareProperty}
+          />
+        )}
+
+        {/* View 4: Servicios (Dedicated Legal, Notarial & Valuation Hub) */}
+        {activeView === 'servicios' && (
+          <ServicesView
+            onOpenWhatsApp={() => handleOpenWhatsApp()}
+            onOpenResources={(tab) => {
+              if (tab) setResourcesInitialTab(tab);
+              setIsResourcesOpen(true);
+            }}
+          />
+        )}
+
+        {/* View 5: Nosotros (Dedicated Quiénes Somos View) */}
+        {activeView === 'nosotros' && (
+          <AboutView
+            onOpenContact={() => setActiveView('contacto')}
+            onOpenWhatsApp={() => handleOpenWhatsApp()}
+            onNavigateToCatalog={() => setActiveView('comprar')}
+          />
+        )}
+
+        {/* View 6: Blog (Dedicated Knowledge, Articles & Legal Templates) */}
+        {activeView === 'blog' && (
+          <BlogView
+            onDownloadTemplate={(tpl) => {
+              addToast(`Plantilla Descargada: ${tpl.downloadFileName}`, 'Documento listo para personalización notarial.', 'success');
+            }}
+            onOpenWhatsApp={() => handleOpenWhatsApp()}
+          />
+        )}
+
+        {/* View 7: Contacto (Dedicated Contact, Offices & FAQ) */}
+        {activeView === 'contacto' && (
+          <ContactView
+            onOpenWhatsApp={() => handleOpenWhatsApp()}
+          />
+        )}
+
+        {/* View 8: Split Vector Cartography */}
         {activeView === 'split' && (
           <SplitViewMap
             properties={filteredAndSortedProperties}
@@ -605,19 +811,21 @@ export const App: React.FC = () => {
             onSelectProperty={handleSelectProperty}
             onContactWhatsApp={handleOpenWhatsApp}
             onSwitchToCatalog={() => {
-              setActiveView('catalog');
+              setActiveView('comprar');
               setViewMode('grid');
             }}
           />
         )}
 
-        {/* View: Full Property Due Diligence Detail */}
+        {/* View 9: Full Property Due Diligence Detail */}
         {activeView === 'detail' && (
           <PropertyDetailView
             property={selectedProperty}
-            onBack={() => setActiveView('catalog')}
+            onBack={() => setActiveView(previousView || 'comprar')}
             onOpenSchedule={handleOpenSchedule}
             onContactWhatsApp={handleOpenWhatsApp}
+            onOpenAlert={(prop) => handleOpenAlert(prop)}
+            onShare={handleShareProperty}
           />
         )}
       </main>
@@ -658,7 +866,11 @@ export const App: React.FC = () => {
         isOpen={isPublishModalOpen}
         user={authState.user}
         subscription={authState.subscription}
-        onClose={() => setIsPublishModalOpen(false)}
+        initialData={publishPrefill}
+        onClose={() => {
+          setIsPublishModalOpen(false);
+          setPublishPrefill(null);
+        }}
         onRequireAuth={() => setIsAuthModalOpen(true)}
         onPropertyPublished={handlePropertyPublished}
       />
@@ -679,7 +891,7 @@ export const App: React.FC = () => {
         onClose={() => setIsFavoritesDrawerOpen(false)}
         onRemoveFavorite={toggleFavorite}
         onClearAllFavorites={() => {
-          setSavedPropertyIds([]);
+          clearFavorites();
           addToast('Portafolio vaciado', 'Has eliminado todas las propiedades de favoritos.', 'info');
         }}
         onSelectProperty={handleSelectProperty}
@@ -707,6 +919,95 @@ export const App: React.FC = () => {
         property={modalProperty}
         onClose={() => setIsScheduleOpen(false)}
       />
+
+      {/* 10 Sitemap Pillars Interactive Modals */}
+      <AboutUsModal
+        isOpen={isAboutOpen}
+        onClose={() => setIsAboutOpen(false)}
+      />
+
+      <ResourcesCalculatorsModal
+        isOpen={isResourcesOpen}
+        initialTab={resourcesInitialTab}
+        onClose={() => setIsResourcesOpen(false)}
+        onDownloadTemplate={(tmpl: LegalTemplate) => {
+          addToast(
+            'Plantilla Notarial Descargada',
+            `${tmpl.title} (${tmpl.downloadFileName}) lista en descargas.`,
+            'success'
+          );
+        }}
+      />
+
+      <AgentsDirectoryModal
+        isOpen={isAgentsOpen}
+        onClose={() => setIsAgentsOpen(false)}
+        onContactWhatsAppAgent={(agent: AgentProfile) => {
+          addToast(
+            'Conectando con Agente Verificado',
+            `Abriendo WhatsApp con ${agent.name} (${agent.company})`,
+            'info'
+          );
+          if (typeof window !== 'undefined') {
+            window.open(`https://wa.me/${agent.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hola ${agent.name}, vi tu perfil en Propiedades Premier y quisiera información de tu cartera en ${agent.specialtySector}.`)}`, '_blank');
+          }
+        }}
+      />
+
+      <TikTokVideoReelModal
+        isOpen={isTikTokOpen}
+        properties={filteredAndSortedProperties}
+        onClose={() => setIsTikTokOpen(false)}
+        onSelectProperty={handleSelectProperty}
+        onContactWhatsApp={handleOpenWhatsApp}
+        onShare={handleShareProperty}
+      />
+
+      <ContactModal
+        isOpen={isContactOpen}
+        onClose={() => setIsContactOpen(false)}
+        onOpenWhatsApp={() => handleOpenWhatsApp()}
+      />
+
+      <PaymentCheckoutModal
+        isOpen={isCheckoutOpen}
+        user={authState.user}
+        planCode={pendingPlan?.code || 'PRO_AGENT'}
+        planName={pendingPlan?.name || 'Plan Profesional'}
+        amountUsd={pendingPlan?.amount || 49}
+        onClose={() => setIsCheckoutOpen(false)}
+        onPaymentSuccess={handlePaymentSuccess}
+      />
+
+      {/* Competitor Value-Add 1: Tasador Inteligente IA (Properati & Zillow Inspired) */}
+      <PropertyValuatorModal
+        isOpen={isValuatorOpen}
+        onClose={() => setIsValuatorOpen(false)}
+        onPublishWithValue={handleValuatorPublish}
+        onBookAppraisal={() => {
+          setIsValuatorOpen(false);
+          setActiveView('servicios');
+          addToast('Servicios Notariales', 'Selecciona Avalúo Certificado DMQ en nuestra lista de trámites.', 'info');
+        }}
+      />
+
+      {/* Competitor Value-Add 2: Alertas de Bajada de Precio (Plusvalía Inspired) */}
+      <PriceAlertModal
+        isOpen={isAlertModalOpen}
+        targetProperty={alertTargetProperty}
+        defaultSector={filters.sector}
+        defaultType={filters.type}
+        onClose={() => {
+          setIsAlertModalOpen(false);
+          setAlertTargetProperty(null);
+        }}
+        onAlertCreated={(msg) => {
+          addToast('Alerta Activada', msg, 'success');
+        }}
+      />
+
+      {/* Trust & Confidence Bar matching Mockup */}
+      <TrustBar />
 
       {/* Footer */}
       <Footer
