@@ -657,7 +657,8 @@ export const App: React.FC = () => {
                         gap: '0.35rem'
                       }}
                     >
-                      <span>Ver todas las propiedades</span>
+                      <span className="desktop-text">Ver todas las propiedades</span>
+                      <span className="mobile-text">Ver todas</span>
                       <span style={{ fontSize: '1.1rem' }}>→</span>
                     </button>
                   </div>

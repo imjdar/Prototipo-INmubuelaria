@@ -1,6 +1,6 @@
 import React from 'react';
 import { Property } from '../types/property';
-import { Heart, MessageSquare, Scale, Eye, Share2, Check, Bell } from 'lucide-react';
+import { Heart, ChevronRight, Bed, Bath, Maximize2, MessageSquare, Scale, Eye } from 'lucide-react';
 import { PriceOpportunityBadge } from './PriceOpportunityBadge';
 
 interface PropertyCardProps {
@@ -25,195 +25,153 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   onQuickView,
   onSelectProperty,
   onContactWhatsApp,
-  onShare,
-  onOpenAlert
+  onShare: _onShare,
+  onOpenAlert: _onOpenAlert
 }) => {
-  const pricePerSqm = Math.round(property.price / property.areaBuild);
-  const formattedPrice = new Intl.NumberFormat('en-US', {
+  const isRental = property.price < 5000;
+  
+  // Format price e.g. "$ 299.000" or "$ 1.200 / mes" matching Mockup
+  const formattedPrice = new Intl.NumberFormat('es-EC', {
     style: 'currency',
     currency: 'USD',
     maximumFractionDigits: 0
-  }).format(property.price);
-
-  const formattedPricePerSqm = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0
-  }).format(pricePerSqm);
+  }).format(property.price).replace('USD', '$');
 
   return (
-    <article className={`property-card ${isCompared ? 'card-is-compared' : ''}`}>
-      <div className="card-media">
+    <article 
+      className={`premier-property-card ${isCompared ? 'is-in-compare' : ''}`}
+      onClick={() => onSelectProperty(property)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelectProperty(property);
+        }
+      }}
+      aria-label={`${property.title}, precio ${formattedPrice}`}
+    >
+      {/* Media Image Container with Badges */}
+      <div className="card-media-wrapper">
         <img
           src={property.image}
           alt={property.title}
           loading="lazy"
-          onClick={() => onSelectProperty(property)}
-          style={{ cursor: 'pointer' }}
+          className="card-media-img"
         />
 
-        {/* Badges Overlay matching Mockup */}
-        <div className="media-badges">
-          <span className="badge-tag" style={{ background: '#FEA004', color: '#FFFFFF', fontWeight: 800, letterSpacing: '0.04em' }}>
-            {property.price < 5000 ? 'En Renta' : 'En Venta'}
-          </span>
-          <span className="badge-tag badge-verified">✓ Registro DMQ Auditado</span>
-          {property.features.hasGenerator && (
-            <span className="badge-tag badge-generator">⚡ Generador 100%</span>
-          )}
-          {property.features.hasMetro && (
-            <span className="badge-tag badge-metro">🚇 Metro &lt; 2 min</span>
-          )}
+        {/* Top-Left Badge: "En Venta" / "En Renta" matching Mockup */}
+        <div className="card-tag-pill">
+          {isRental ? 'En Renta' : 'En Venta'}
         </div>
 
-        {/* Action Pills Overlay */}
-        <div className="media-actions-overlay">
-          {/* Price Alert Bell Button */}
-          {onOpenAlert && (
-            <button
-              className="media-action-pill"
-              onClick={(e) => {
-                e.stopPropagation();
-                onOpenAlert(property);
-              }}
-              title="Avisarme si baja de precio"
-              aria-label={`Avisarme si baja de precio ${property.title}`}
-            >
-              <Bell size={14} />
-            </button>
-          )}
+        {/* Top-Right Favorite Heart Button matching Mockup */}
+        <button
+          type="button"
+          className={`card-heart-btn ${isFavorite ? 'is-fav' : ''}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFavorite(property.id);
+          }}
+          title={isFavorite ? 'Quitar de guardados' : 'Guardar propiedad'}
+          aria-label={isFavorite ? 'Quitar de favoritos' : 'Guardar en favoritos'}
+        >
+          <Heart 
+            size={18} 
+            fill={isFavorite ? '#FEA004' : 'none'} 
+            color={isFavorite ? '#FEA004' : '#FFFFFF'} 
+          />
+        </button>
 
-          {/* Quick View Button */}
-          <button
-            className="media-action-pill"
-            onClick={(e) => {
-              e.stopPropagation();
-              onQuickView(property);
-            }}
-            title="Vista Rápida"
-            aria-label={`Vista rápida de ${property.title}`}
-          >
-            <Eye size={15} />
-          </button>
-
-          {/* Share Button */}
-          <button
-            className="media-action-pill"
-            onClick={(e) => {
-              e.stopPropagation();
-              onShare(property);
-            }}
-            title="Copiar enlace de propiedad"
-            aria-label={`Compartir enlace de ${property.title}`}
-          >
-            <Share2 size={14} />
-          </button>
-
-          {/* Favorite Heart Button */}
-          <button
-            className={`media-action-pill media-favorite ${isFavorite ? 'active' : ''}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleFavorite(property.id);
-            }}
-            title={isFavorite ? 'Quitar de guardados' : 'Guardar en colección privada'}
-            aria-label={isFavorite ? 'Quitar de favoritos' : 'Guardar en favoritos'}
-            aria-pressed={isFavorite}
-          >
-            <Heart size={15} fill={isFavorite ? '#FFFFFF' : 'none'} color="#FFFFFF" />
-          </button>
-        </div>
-
-        <div className="media-climate">{property.temperature}</div>
+        {/* Quick View Button on Image Hover */}
+        <button
+          type="button"
+          className="card-quickview-floating-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            onQuickView(property);
+          }}
+          title="Vista Rápida"
+          aria-label="Vista rápida de la propiedad"
+        >
+          <Eye size={14} />
+          <span>Vista Rápida</span>
+        </button>
       </div>
 
-      <div className="card-body">
-        {/* Compare quick toggle affordance */}
-        <div className="card-top-row">
-          <div className="card-sector">
-            {property.sector} · {property.microzone}
-          </div>
-
-          <button
-            className={`btn-card-compare-toggle ${isCompared ? 'active' : ''}`}
-            onClick={() => onToggleCompare(property)}
-            title="Agregar al comparador de propiedades"
-            aria-label={isCompared ? 'Remover de comparación' : 'Comparar propiedad'}
-            aria-pressed={isCompared}
-          >
-            {isCompared ? (
-              <>
-                <Check size={12} />
-                <span>En Comparador</span>
-              </>
-            ) : (
-              <>
-                <Scale size={12} />
-                <span>Comparar</span>
-              </>
-            )}
-          </button>
-        </div>
-
-        <h3 className="card-title" onClick={() => onSelectProperty(property)}>
-          {property.title}
+      {/* Card Content Body */}
+      <div className="card-details-body">
+        {/* Title: "Tipo | Sector" matching Mockup */}
+        <h3 className="card-primary-title">
+          {property.type} | {property.sector}
         </h3>
 
-        {/* Price & Opportunity Badge */}
-        <div className="card-pricing" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
-          <div>
-            <div className="price-main">{formattedPrice}</div>
-            <div className="price-sqm">{formattedPricePerSqm} / m² constr.</div>
+        {/* Subtitle: "Sector, Microzona" */}
+        <p className="card-location-subtitle">
+          {property.sector}, {property.microzone || 'Quito'}
+        </p>
+
+        {/* Specs Row with Clean Line Icons: m², beds, baths matching Mockup */}
+        <div className="card-specs-strip">
+          <div className="spec-item" title={`${property.areaBuild} m² de construcción`}>
+            <Maximize2 size={15} className="spec-icon" />
+            <span>{property.areaBuild} m²</span>
           </div>
-          {property.price > 5000 && (
-            <PriceOpportunityBadge price={property.price} areaBuild={property.areaBuild} sector={property.sector} compact />
+
+          {property.bedrooms > 0 && (
+            <div className="spec-item" title={`${property.bedrooms} habitaciones / suites`}>
+              <Bed size={16} className="spec-icon" />
+              <span>{property.bedrooms}</span>
+            </div>
           )}
-        </div>
 
-        <div className="card-specs">
-          <div className="spec-item">
-            <div className="spec-val">{property.bedrooms}</div>
-            <div className="spec-lbl">Suites</div>
-          </div>
-          <div className="spec-item">
-            <div className="spec-val">{property.bathrooms}</div>
-            <div className="spec-lbl">Baños</div>
-          </div>
-          <div className="spec-item">
-            <div className="spec-val">{property.areaBuild}</div>
-            <div className="spec-lbl">m² Constr.</div>
-          </div>
-          <div className="spec-item">
-            <div className="spec-val">{property.areaLot}</div>
-            <div className="spec-lbl">m² Lote</div>
+          <div className="spec-item" title={`${property.bathrooms} baños`}>
+            <Bath size={15} className="spec-icon" />
+            <span>{property.bathrooms}</span>
           </div>
         </div>
 
-        <div className="card-trust-meta">
-          <div className="meta-row">
-            <span style={{ color: 'var(--accent-gold-hover)' }}>🛡️</span>
-            <span>Alícuota: <strong>${property.hoaFee}/mes</strong> (guardianía y áreas)</span>
+        {/* Price & Chevron Row matching Mockup */}
+        <div className="card-price-footer">
+          <div className="price-display-wrapper">
+            <span className="price-amount-text">
+              {formattedPrice} {isRental && <span className="price-rental-unit">/ mes</span>}
+            </span>
+            {property.price > 5000 && (
+              <PriceOpportunityBadge 
+                price={property.price} 
+                areaBuild={property.areaBuild} 
+                sector={property.sector} 
+                compact 
+              />
+            )}
           </div>
-          <div className="meta-row">
-            <span style={{ color: 'var(--accent-gold-hover)' }}>📜</span>
-            <span>{property.legalStatus}</span>
+
+          <div className="card-chevron-box" aria-hidden="true">
+            <ChevronRight size={18} color="#FEA004" />
           </div>
         </div>
 
-        <div className="card-actions">
+        {/* Understated Fast-Action Bottom Bar for Power Features */}
+        <div className="card-quick-actions-bar" onClick={(e) => e.stopPropagation()}>
           <button
-            className="btn-card-detail"
-            onClick={() => onSelectProperty(property)}
+            type="button"
+            className={`btn-action-compact compare ${isCompared ? 'is-active' : ''}`}
+            onClick={() => onToggleCompare(property)}
+            title="Comparar propiedad"
           >
-            Ver Ficha & Gastos Notariales
+            <Scale size={13} />
+            <span>{isCompared ? 'Comparando' : 'Comparar'}</span>
           </button>
+
           <button
-            className="btn-card-whatsapp"
+            type="button"
+            className="btn-action-compact whatsapp"
             onClick={() => onContactWhatsApp(property)}
-            title="Contactar con asesor por WhatsApp"
-            aria-label="Contactar por WhatsApp"
+            title="Preguntar por WhatsApp"
           >
-            <MessageSquare size={16} />
+            <MessageSquare size={13} />
+            <span>WhatsApp</span>
           </button>
         </div>
       </div>
