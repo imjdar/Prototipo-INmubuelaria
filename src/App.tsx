@@ -11,7 +11,6 @@ import { useUserFavorites } from './hooks/useUserFavorites';
 import { usePropertyComparison } from './hooks/usePropertyComparison';
 
 import { MapPin } from 'lucide-react';
-import { TopMicroBar } from './components/TopMicroBar';
 import { Header, SiteView } from './components/Header';
 import { Hero } from './components/Hero';
 import { CategoryBar } from './components/CategoryBar';
@@ -28,7 +27,6 @@ import { FavoritesDrawer } from './components/FavoritesDrawer';
 import { PropertyQuickViewModal } from './components/PropertyQuickViewModal';
 import { WhatsAppModal } from './components/WhatsAppModal';
 import { ScheduleModal } from './components/ScheduleModal';
-import { MobileDeviceSimulator } from './components/MobileDeviceSimulator';
 import { ToastContainer } from './components/ToastContainer';
 import { Footer } from './components/Footer';
 
@@ -134,7 +132,6 @@ export const App: React.FC = () => {
   const [isWhatsAppOpen, setIsWhatsAppOpen] = useState<boolean>(false);
   const [isScheduleOpen, setIsScheduleOpen] = useState<boolean>(false);
   const [modalProperty, setModalProperty] = useState<Property | null>(null);
-  const [isMobileSimulated, setIsMobileSimulated] = useState<boolean>(false);
 
   // Search & Filter States
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -467,28 +464,10 @@ export const App: React.FC = () => {
     addToast('Datos cargados al formulario', 'Tu estimación de avalúo ha sido transferida a la publicación.', 'success');
   };
 
-  // If mobile device simulator is open
-  if (isMobileSimulated) {
-    return (
-      <MobileDeviceSimulator
-        properties={filteredAndSortedProperties}
-        onSelectProperty={handleSelectProperty}
-        onContactWhatsApp={handleOpenWhatsApp}
-        onCloseSimulator={() => setIsMobileSimulated(false)}
-      />
-    );
-  }
-
   return (
     <div className="app-container">
       {/* Toast Notification Stack */}
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
-
-      {/* Top micro bar with system status */}
-      <TopMicroBar
-        isMobileSimulated={isMobileSimulated}
-        onToggleMobile={() => setIsMobileSimulated(!isMobileSimulated)}
-      />
 
       {/* Header with Wishlist, Compare badges, and Sprint 1 Auth / Publish */}
       <Header

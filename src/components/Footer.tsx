@@ -11,9 +11,9 @@ export const Footer: React.FC<FooterProps> = ({ onFilterSector, onNavigate }) =>
     <footer className="site-footer">
       <div className="footer-top">
         <div>
-          <div className="footer-brand">VALLE & URBE</div>
+          <div className="footer-brand">PROPIEDADES PREMIER</div>
           <p className="footer-desc">
-            PropTech boutique de alto estándar para Quito y sus valles. Curaduría arquitectónica, transparencia de precios, 100% mandatos exclusivos y respaldo jurídico notarial.
+            Portal inmobiliario líder en Quito y sus valles (propiedadespremier.ec). Curaduría arquitectónica, transparencia de precios, 100% mandatos exclusivos y respaldo jurídico notarial.
           </p>
         </div>
 
@@ -70,8 +70,8 @@ export const Footer: React.FC<FooterProps> = ({ onFilterSector, onNavigate }) =>
       </div>
 
       <div className="footer-bottom">
-        <div>© 2026 VALLE & URBE Real Estate Ecuador. Todos los derechos reservados.</div>
-        <div>Plataforma PropTech de Nueva Generación · Diseñado en React + TypeScript con Google Stitch Design System</div>
+        <div>© 2026 PROPIEDADES PREMIER Ecuador (propiedadespremier.ec). Todos los derechos reservados.</div>
+        <div>Portal Inmobiliario Quito y sus Valles · Respaldo Notarial DMQ</div>
       </div>
     </footer>
   );
