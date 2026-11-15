@@ -37,3 +37,7 @@ Thumbs.db
 
 # Cobertura de pruebas
 coverage/
+
+# SQLite WAL and SHM files
+*.db-shm
+*.db-wal

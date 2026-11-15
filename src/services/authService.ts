@@ -189,6 +189,69 @@ class AuthService {
 
   public async loginWithDemo(key: 'agent' | 'buyer' | 'admin'): Promise<{ user: User; subscription: UserSubscription; tokens: AuthTokens }> {
     const demo = DEMO_USERS[key];
+    const demoPasswords: Record<'agent' | 'buyer' | 'admin', string> = {
+      agent: 'Quito2026!Premier',
+      buyer: 'Inversiones2026!',
+      admin: 'AdminSuper2026!'
+    };
+
+    // Try real backend API first
+    try {
+      if (typeof window !== 'undefined' && typeof fetch !== 'undefined') {
+        const res = await fetch('/api/v1/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: demo.user.email,
+            password: demoPasswords[key]
+          })
+        });
+
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.data) {
+            const backendUser: User = {
+              id: json.data.user.id,
+              email: json.data.user.email,
+              fullName: json.data.user.fullName,
+              phone: json.data.user.phone,
+              role: json.data.user.role,
+              avatarUrl: json.data.user.avatarUrl || demo.user.avatarUrl,
+              isVerified: json.data.user.isVerified,
+              companyName: json.data.user.companyName,
+              licenseNumber: json.data.user.licenseNumber,
+              createdAt: demo.user.createdAt
+            };
+
+            const planCode: PlanCode = json.data.subscription?.planCode || demo.planCode;
+            const subscription: UserSubscription = {
+              id: json.data.subscription?.id || `sub-${Date.now()}`,
+              userId: backendUser.id,
+              plan: MEMBERSHIP_PLANS[planCode] || MEMBERSHIP_PLANS.FREE,
+              status: json.data.subscription?.status || 'ACTIVE',
+              currentPeriodStart: new Date().toISOString(),
+              currentPeriodEnd: json.data.subscription?.currentPeriodEnd || new Date(Date.now() + 90 * 86400000).toISOString(),
+              autoRenew: true,
+              usedListings: json.data.subscription?.usedListings || 0
+            };
+
+            const tokens: AuthTokens = {
+              accessToken: json.data.tokens.accessToken,
+              refreshToken: json.data.tokens.refreshToken,
+              expiresInSeconds: json.data.tokens.expiresInSeconds || 900,
+              tokenType: 'Bearer'
+            };
+
+            this.saveSession(backendUser, subscription, tokens);
+            return { user: backendUser, subscription, tokens };
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[AuthService] Live backend unreachable, falling back to local demo state:', e);
+    }
+
+    // Fallback if backend is offline
     const tokens = this.generateTokens();
     const subscription = this.createSubscription(demo.user.id, demo.planCode, key === 'agent' ? 4 : 0);
     this.saveSession(demo.user, subscription, tokens);
@@ -201,6 +264,62 @@ class AuthService {
       if (DEMO_USERS[key].user.email.toLowerCase() === credentials.email.toLowerCase()) {
         return this.loginWithDemo(key as 'agent' | 'buyer' | 'admin');
       }
+    }
+
+    // Try real backend API first
+    try {
+      if (typeof window !== 'undefined' && typeof fetch !== 'undefined') {
+        const res = await fetch('/api/v1/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: credentials.email,
+            password: credentials.password
+          })
+        });
+
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.data) {
+            const backendUser: User = {
+              id: json.data.user.id,
+              email: json.data.user.email,
+              fullName: json.data.user.fullName,
+              phone: json.data.user.phone,
+              role: json.data.user.role,
+              avatarUrl: json.data.user.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(credentials.email)}`,
+              isVerified: json.data.user.isVerified,
+              companyName: json.data.user.companyName,
+              licenseNumber: json.data.user.licenseNumber,
+              createdAt: new Date().toISOString()
+            };
+
+            const planCode: PlanCode = json.data.subscription?.planCode || 'FREE';
+            const subscription: UserSubscription = {
+              id: json.data.subscription?.id || `sub-${Date.now()}`,
+              userId: backendUser.id,
+              plan: MEMBERSHIP_PLANS[planCode] || MEMBERSHIP_PLANS.FREE,
+              status: json.data.subscription?.status || 'ACTIVE',
+              currentPeriodStart: new Date().toISOString(),
+              currentPeriodEnd: json.data.subscription?.currentPeriodEnd || new Date(Date.now() + 90 * 86400000).toISOString(),
+              autoRenew: true,
+              usedListings: json.data.subscription?.usedListings || 0
+            };
+
+            const tokens: AuthTokens = {
+              accessToken: json.data.tokens.accessToken,
+              refreshToken: json.data.tokens.refreshToken,
+              expiresInSeconds: json.data.tokens.expiresInSeconds || 900,
+              tokenType: 'Bearer'
+            };
+
+            this.saveSession(backendUser, subscription, tokens);
+            return { user: backendUser, subscription, tokens };
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[AuthService] Live login failed or unreachable, falling back to local session:', e);
     }
 
     // Usuario estándar nuevo por credencial
@@ -247,6 +366,67 @@ class AuthService {
   }
 
   public async register(credentials: RegisterCredentials): Promise<{ user: User; subscription: UserSubscription; tokens: AuthTokens }> {
+    // Try real backend API first
+    try {
+      if (typeof window !== 'undefined' && typeof fetch !== 'undefined') {
+        const res = await fetch('/api/v1/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: credentials.email,
+            password: credentials.password,
+            fullName: credentials.fullName,
+            phone: credentials.phone,
+            role: credentials.role,
+            companyName: credentials.companyName,
+            licenseNumber: credentials.licenseNumber
+          })
+        });
+
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.data) {
+            const backendUser: User = {
+              id: json.data.user.id,
+              email: json.data.user.email,
+              fullName: json.data.user.fullName,
+              phone: json.data.user.phone,
+              role: json.data.user.role,
+              companyName: json.data.user.companyName,
+              licenseNumber: json.data.user.licenseNumber,
+              avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(credentials.fullName)}`,
+              isVerified: json.data.user.isVerified,
+              createdAt: new Date().toISOString()
+            };
+
+            const defaultPlan: PlanCode = credentials.role === 'AGENT' ? 'PRO_AGENT' : 'FREE';
+            const subscription: UserSubscription = {
+              id: `sub-${Date.now()}`,
+              userId: backendUser.id,
+              plan: MEMBERSHIP_PLANS[defaultPlan],
+              status: 'ACTIVE',
+              currentPeriodStart: new Date().toISOString(),
+              currentPeriodEnd: new Date(Date.now() + 90 * 86400000).toISOString(),
+              autoRenew: true,
+              usedListings: 0
+            };
+
+            const tokens: AuthTokens = {
+              accessToken: json.data.tokens.accessToken,
+              refreshToken: json.data.tokens.refreshToken,
+              expiresInSeconds: json.data.tokens.expiresInSeconds || 900,
+              tokenType: 'Bearer'
+            };
+
+            this.saveSession(backendUser, subscription, tokens);
+            return { user: backendUser, subscription, tokens };
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[AuthService] Live register failed or unreachable, falling back to local session:', e);
+    }
+
     const user: User = {
       id: `user-${Date.now()}`,
       email: credentials.email,
@@ -268,6 +448,40 @@ class AuthService {
   }
 
   public async upgradeSubscription(user: User, newPlanCode: PlanCode): Promise<UserSubscription> {
+    try {
+      const state = this.getInitialState();
+      if (typeof window !== 'undefined' && typeof fetch !== 'undefined' && state.tokens?.accessToken) {
+        const res = await fetch('/api/v1/subscriptions/upgrade', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${state.tokens.accessToken}`
+          },
+          body: JSON.stringify({ planCode: newPlanCode })
+        });
+
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.data) {
+            const upgradedSub: UserSubscription = {
+              id: json.data.subscription.id,
+              userId: user.id,
+              plan: MEMBERSHIP_PLANS[newPlanCode] || MEMBERSHIP_PLANS.FREE,
+              status: 'ACTIVE',
+              currentPeriodStart: new Date().toISOString(),
+              currentPeriodEnd: json.data.subscription.currentPeriodEnd,
+              autoRenew: true,
+              usedListings: json.data.subscription.usedListings || 0
+            };
+            this.saveSession(user, upgradedSub, state.tokens);
+            return upgradedSub;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[AuthService] Live subscription upgrade failed, falling back to local mock:', e);
+    }
+
     const newSubscription = this.createSubscription(user.id, newPlanCode, 0);
     const tokens = this.generateTokens();
     this.saveSession(user, newSubscription, tokens);

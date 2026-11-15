@@ -14,6 +14,7 @@ import { runIhcAndSolidTests } from './qa-ihc-heuristics';
 import { runResponsiveStressAndItemizedTests } from './qa-responsive-stress-itemized';
 import { runPersonasCosaPorCosaQA } from './qa-personas-navbar-cosa-por-cosa';
 import { runCompetitorFeaturesQA } from './qa-competitor-features';
+import { runBackendSecurityAndQA } from './qa-backend-fullstack';
 
 async function main() {
   console.log('╔════════════════════════════════════════════════════════════════════╗');
@@ -33,10 +34,11 @@ async function main() {
   const responsive = await runResponsiveStressAndItemizedTests();
   const personas = await runPersonasCosaPorCosaQA();
   const competitor = await runCompetitorFeaturesQA();
+  const backendSec = await runBackendSecurityAndQA();
 
   const totalTime = ((performance.now() - start) / 1000).toFixed(3);
-  const totalPassed = whitebox.passed + graybox.passed + blackbox.passed + stress.passed + multiuser.passed + hundreds.passed + ihcAndSolid.passed + responsive.passed + personas + competitor.passed;
-  const totalFailed = whitebox.failed + graybox.failed + blackbox.failed + stress.failed + multiuser.failed + hundreds.failed + ihcAndSolid.failed + responsive.failed + competitor.failed;
+  const totalPassed = whitebox.passed + graybox.passed + blackbox.passed + stress.passed + multiuser.passed + hundreds.passed + ihcAndSolid.passed + responsive.passed + personas + competitor.passed + backendSec.passed;
+  const totalFailed = whitebox.failed + graybox.failed + blackbox.failed + stress.failed + multiuser.failed + hundreds.failed + ihcAndSolid.failed + responsive.failed + competitor.failed + backendSec.failed;
 
   console.log('\n==========================================================');
   console.log('📊 RESUMEN EJECUTIVO DE CERTIFICACIÓN QA INTEGRAL');
@@ -51,6 +53,7 @@ async function main() {
   console.log(`  • Estrés Cosa por Cosa & Responsive:  ${responsive.passed} aprobadas / ${responsive.failed} fallidas`);
   console.log(`  • Clientes Reales Multi-Persona:      ${personas} aprobadas / 0 fallidas`);
   console.log(`  • Benchmarking Competencia (Plusvalía/Properati): ${competitor.passed} aprobadas / ${competitor.failed} fallidas`);
+  console.log(`  • Ciberseguridad & Backend Real (API v1): ${backendSec.passed} aprobadas / ${backendSec.failed} fallidas`);
   console.log('──────────────────────────────────────────────────────────');
   console.log(`  TOTAL: ${totalPassed} pruebas APROBADAS / ${totalFailed} FALLIDAS en ${totalTime}s`);
   console.log('==========================================================\n');

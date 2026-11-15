@@ -73,6 +73,39 @@ export function useUserFavorites(userId?: string | null) {
         return [...prev, id];
       }
     });
+
+    // Background sync to live API if authenticated
+    try {
+      if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+        const stored = localStorage.getItem('valle_urbe_auth_session_v1');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          const token = parsed?.tokens?.accessToken;
+          if (token) {
+            if (added) {
+              fetch('/api/v1/favorites', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ propertyId: id })
+              }).catch(() => {});
+            } else {
+              fetch(`/api/v1/favorites/${id}`, {
+                method: 'DELETE',
+                headers: {
+                  'Authorization': `Bearer ${token}`
+                }
+              }).catch(() => {});
+            }
+          }
+        }
+      }
+    } catch {
+      // Ignored: local storage persistence already handles offline state
+    }
+
     return { isAdded: added };
   }, []);
 
