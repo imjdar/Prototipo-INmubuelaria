@@ -3,6 +3,8 @@ import authRoutes from './authRoutes';
 import propertyRoutes from './propertyRoutes';
 import favoriteRoutes from './favoriteRoutes';
 import subscriptionRoutes from './subscriptionRoutes';
+import agentRoutes from './agentRoutes';
+import billingRoutes from './billingRoutes';
 
 const router = Router();
 
@@ -19,5 +21,7 @@ router.use('/auth', authRoutes);
 router.use('/properties', propertyRoutes);
 router.use('/favorites', favoriteRoutes);
 router.use('/subscriptions', subscriptionRoutes);
+router.use('/agents', agentRoutes);
+router.use('/billing', billingRoutes);
 
 export default router;

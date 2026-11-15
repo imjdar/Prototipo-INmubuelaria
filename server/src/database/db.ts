@@ -153,6 +153,45 @@ export function initializeDatabase() {
     );
   `);
 
+  // 8. Table: Invoices (Facturación SRI Ecuador con IVA 15%)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS invoices (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      subscription_id TEXT REFERENCES user_subscriptions(id),
+      plan_code TEXT NOT NULL,
+      subtotal_usd REAL NOT NULL,
+      vat_rate REAL NOT NULL DEFAULT 0.15,
+      vat_amount_usd REAL NOT NULL,
+      total_usd REAL NOT NULL,
+      payment_method TEXT NOT NULL,
+      tax_id_type TEXT NOT NULL, -- 'RUC', 'CEDULA', 'PASAPORTE'
+      tax_id_number TEXT NOT NULL,
+      tax_legal_name TEXT NOT NULL,
+      tax_address TEXT,
+      tax_email TEXT NOT NULL,
+      sri_access_key TEXT NOT NULL UNIQUE,
+      status TEXT NOT NULL DEFAULT 'PAID', -- 'PAID', 'PENDING', 'CANCELLED'
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_invoices_user_id ON invoices(user_id);
+  `);
+
+  // 9. Table: Agent Reviews (Reseñas Verificadas de Clientes)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS agent_reviews (
+      id TEXT PRIMARY KEY,
+      agent_id TEXT NOT NULL,
+      author_name TEXT NOT NULL,
+      author_role TEXT DEFAULT 'Comprador Verificado',
+      rating REAL NOT NULL DEFAULT 5.0,
+      comment TEXT NOT NULL,
+      sector TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_agent_reviews_agent_id ON agent_reviews(agent_id);
+  `);
+
   // Seed Data if membership_plans is empty
   const planCountStmt = db.prepare('SELECT COUNT(*) as count FROM membership_plans');
   const planCount = (planCountStmt.get() as { count: number }).count;
@@ -348,5 +387,41 @@ function seedInitialData() {
     );
   }
 
-  console.log(`[DB] Successfully seeded ${PROPERTIES.length} properties, 3 users, and 3 plans.`);
+  // 5. Seed Agent Reviews
+  const insertReview = db.prepare(`
+    INSERT INTO agent_reviews (id, agent_id, author_name, author_role, rating, comment, sector)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  insertReview.run(
+    'rev-001',
+    agentId,
+    'Dr. Fernando Alarcón',
+    'Comprador Verificado',
+    5.0,
+    'Excelente asesoría legal en la promesa de compraventa ante la Notaría 35 de Quito. Verificó gravámenes y nos acompañó hasta la entrega de llaves en San Juan Alto.',
+    'Cumbayá'
+  );
+
+  insertReview.run(
+    'rev-002',
+    agentId,
+    'Familia Morales-Paredes',
+    'Inversionistas',
+    4.9,
+    'Mateo conoce cada urbanización privada de Puembo y Cumbayá. Nos encontró una casa con generador eléctrico al 100% y pozo de agua propio en tiempo récord.',
+    'Puembo'
+  );
+
+  insertReview.run(
+    'rev-003',
+    'agent-002',
+    'Arq. Sebastián Vivanco',
+    'Inversionista Airbnb',
+    5.0,
+    'La mejor especialista en La Carolina y González Suárez. Su análisis de Cap Rate y cercanía al Metro de Quito fue 100% certero para nuestra suite de inversión.',
+    'La Carolina'
+  );
+
+  console.log(`[DB] Successfully seeded ${PROPERTIES.length} properties, 3 users, 3 plans, and verified reviews.`);
 }

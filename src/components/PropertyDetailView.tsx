@@ -28,6 +28,7 @@ interface PropertyDetailViewProps {
   onContactWhatsApp: (property: Property, customMessage?: string) => void;
   onOpenAlert?: (property: Property) => void;
   onShare?: (property: Property) => void;
+  onOpenAgentProfile?: () => void;
 }
 
 export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
@@ -36,7 +37,8 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
   onOpenSchedule,
   onContactWhatsApp,
   onOpenAlert,
-  onShare
+  onShare,
+  onOpenAgentProfile
 }) => {
   const [activeMediaTab, setActiveMediaTab] = useState<'photos' | 'video' | 'matterport' | 'plans'>('photos');
   const [inquiryText, setInquiryText] = useState<string>('¡Hola! Me interesa recibir más información sobre esta propiedad y coordinar una visita.');
@@ -583,7 +585,12 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
         {/* Right Column: Agent VIP Card & Interactive Inquiry Box */}
         <div>
           <div className="agent-vip-card" style={{ position: 'sticky', top: '90px' }}>
-            <div className="agent-profile">
+            <div
+              className="agent-profile"
+              onClick={onOpenAgentProfile}
+              style={{ cursor: onOpenAgentProfile ? 'pointer' : 'default' }}
+              title={onOpenAgentProfile ? "Click para ver perfil notarial y reseñas" : undefined}
+            >
               <img
                 className="agent-avatar"
                 src={property.agent.avatar}
@@ -595,6 +602,32 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
                 <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{property.agent.license}</div>
               </div>
             </div>
+
+            {onOpenAgentProfile && (
+              <button
+                type="button"
+                onClick={onOpenAgentProfile}
+                style={{
+                  width: '100%',
+                  marginTop: '0.5rem',
+                  marginBottom: '1rem',
+                  padding: '0.5rem',
+                  borderRadius: '6px',
+                  border: '1px solid #FED7AA',
+                  background: '#FFF7ED',
+                  color: '#EA580C',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.35rem'
+                }}
+              >
+                <span>Ver Perfil Notarial & Reseñas Verificadas</span>
+              </button>
+            )}
 
             <div style={{
               fontSize: '0.8rem',

@@ -48,13 +48,14 @@ import { ContactView } from './views/ContactView';
 import { AboutUsModal } from './components/AboutUsModal';
 import { ResourcesCalculatorsModal } from './components/ResourcesCalculatorsModal';
 import { AgentsDirectoryModal } from './components/AgentsDirectoryModal';
+import { AgentPublicProfileModal } from './components/AgentPublicProfileModal';
 import { TikTokVideoReelModal } from './components/TikTokVideoReelModal';
 import { ContactModal } from './components/ContactModal';
 import { PaymentCheckoutModal } from './components/PaymentCheckoutModal';
 import { PropertyValuatorModal } from './components/PropertyValuatorModal';
 import { PriceAlertModal } from './components/PriceAlertModal';
 import { Bell } from 'lucide-react';
-import { AgentProfile } from './services/agentService';
+import { agentService, AgentProfile } from './services/agentService';
 import { LegalTemplate } from './services/resourcesService';
 import { PaymentIntent } from './services/paymentService';
 
@@ -108,6 +109,7 @@ export const App: React.FC = () => {
   const [isResourcesOpen, setIsResourcesOpen] = useState<boolean>(false);
   const [resourcesInitialTab, setResourcesInitialTab] = useState<'calculators' | 'blog' | 'documents'>('calculators');
   const [isAgentsOpen, setIsAgentsOpen] = useState<boolean>(false);
+  const [selectedAgentForProfile, setSelectedAgentForProfile] = useState<AgentProfile | null>(null);
   const [isTikTokOpen, setIsTikTokOpen] = useState<boolean>(false);
   const [isContactOpen, setIsContactOpen] = useState<boolean>(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
@@ -806,6 +808,13 @@ export const App: React.FC = () => {
             onContactWhatsApp={handleOpenWhatsApp}
             onOpenAlert={(prop) => handleOpenAlert(prop)}
             onShare={handleShareProperty}
+            onOpenAgentProfile={() => {
+              const allAgents = agentService.getAllAgents();
+              const found = allAgents.find(a => 
+                a.name.toLowerCase().includes(selectedProperty.agent.name.toLowerCase().split(' ')[1] || 'serrano')
+              ) || allAgents[0];
+              setSelectedAgentForProfile(found);
+            }}
           />
         )}
       </main>
@@ -922,6 +931,7 @@ export const App: React.FC = () => {
       <AgentsDirectoryModal
         isOpen={isAgentsOpen}
         onClose={() => setIsAgentsOpen(false)}
+        onOpenAgentProfile={(agent: AgentProfile) => setSelectedAgentForProfile(agent)}
         onContactWhatsAppAgent={(agent: AgentProfile) => {
           addToast(
             'Conectando con Agente Verificado',
@@ -930,6 +940,21 @@ export const App: React.FC = () => {
           );
           if (typeof window !== 'undefined') {
             window.open(`https://wa.me/${agent.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hola ${agent.name}, vi tu perfil en Propiedades Premier y quisiera información de tu cartera en ${agent.specialtySector}.`)}`, '_blank');
+          }
+        }}
+      />
+
+      <AgentPublicProfileModal
+        isOpen={Boolean(selectedAgentForProfile)}
+        agent={selectedAgentForProfile}
+        onClose={() => setSelectedAgentForProfile(null)}
+        onSelectProperty={(property) => {
+          setSelectedAgentForProfile(null);
+          handleSelectProperty(property);
+        }}
+        onContactWhatsApp={(agent) => {
+          if (typeof window !== 'undefined') {
+            window.open(`https://wa.me/${agent.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hola ${agent.name}, vi tu perfil notarial en Propiedades Premier y quisiera información de tus propiedades.`)}`, '_blank');
           }
         }}
       />
