@@ -13,7 +13,7 @@ export interface User {
   createdAt: string;
 }
 
-export type PlanCode = 'FREE' | 'PRO_AGENT' | 'VIP_INMOBILIARIA';
+export type PlanCode = 'FREE' | 'INDIVIDUAL' | 'PRO_AGENT' | 'VIP_INMOBILIARIA';
 
 export interface MembershipPlan {
   id: string;

@@ -22,23 +22,39 @@ export const MEMBERSHIP_PLANS: Record<PlanCode, MembershipPlan> = {
     hasVideoReels: false,
     hasAiGuardianPriority: false,
     features: [
-      '1 publicación básica sin costo',
-      'Búsqueda con filtros Quito & Metro',
-      'Calculadora hipotecaria BIESS y Notarial',
-      'Portafolio privado de favoritos'
+      'Búsqueda libre con filtros Quito & Metro',
+      'Calculadora hipotecaria BIESS y Notarial DMQ',
+      'Portafolio privado de favoritos',
+      'Alertas de precio personalizadas'
+    ]
+  },
+  INDIVIDUAL: {
+    id: 'plan-ind-001',
+    code: 'INDIVIDUAL',
+    name: 'Dueño Directo / Individual ($29/3 meses)',
+    monthlyPriceUsd: 29,
+    maxListings: 1,
+    featuredTokens: 1,
+    hasVideoReels: false,
+    hasAiGuardianPriority: true,
+    features: [
+      '1 publicación activa por 3 meses ($29)',
+      'Verificación notarial de título de propiedad',
+      'Atención directa y leads vía WhatsApp',
+      'Ficha técnica con planos y fotos HD'
     ]
   },
   PRO_AGENT: {
     id: 'plan-pro-002',
     code: 'PRO_AGENT',
-    name: 'Agente Inmobiliario Pro',
-    monthlyPriceUsd: 39,
-    maxListings: 15,
+    name: 'Agente Inmobiliario Pro ($49/3 meses)',
+    monthlyPriceUsd: 49,
+    maxListings: 10,
     featuredTokens: 3,
     hasVideoReels: true,
     hasAiGuardianPriority: true,
     features: [
-      'Hasta 15 propiedades simultáneas',
+      'Hasta 10 propiedades simultáneas por 3 meses ($49)',
       'Feed vertical de videos 9:16 (Estilo TikTok)',
       'Sello de verificación notarial express DMQ',
       'Auditoría prioritaria con Bot Guardián IA',
@@ -49,14 +65,14 @@ export const MEMBERSHIP_PLANS: Record<PlanCode, MembershipPlan> = {
   VIP_INMOBILIARIA: {
     id: 'plan-vip-003',
     code: 'VIP_INMOBILIARIA',
-    name: 'Inmobiliaria & Constructora VIP',
-    monthlyPriceUsd: 119,
-    maxListings: 100,
-    featuredTokens: 15,
+    name: 'Inmobiliaria & Constructora VIP ($99/3 meses)',
+    monthlyPriceUsd: 99,
+    maxListings: 40,
+    featuredTokens: 10,
     hasVideoReels: true,
     hasAiGuardianPriority: true,
     features: [
-      'Hasta 100 publicaciones de proyectos',
+      'Hasta 40 publicaciones de proyectos ($99/3 meses)',
       'Videos 9:16 y tours virtuales 3D ilimitados',
       'CRM de leads con integración WhatsApp Concierge',
       'Banner patrocinado en Cumbayá y La Carolina',

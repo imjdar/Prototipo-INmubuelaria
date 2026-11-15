@@ -45,7 +45,7 @@ export function upgradePlan(req: Request, res: Response): void {
   }
 
   // Check existing active subscription
-  const existingSub = db.prepare('SELECT id, used_listings FROM user_subscriptions WHERE user_id = ? AND status = "ACTIVE"').get(req.user.userId) as any;
+  const existingSub = db.prepare("SELECT id, used_listings FROM user_subscriptions WHERE user_id = ? AND status = 'ACTIVE'").get(req.user.userId) as any;
 
   if (existingSub) {
     // Update existing subscription
@@ -64,8 +64,8 @@ export function upgradePlan(req: Request, res: Response): void {
   }
 
   // Update user role to AGENT if upgrading to PRO_AGENT or VIP_INMOBILIARIA
-  if (planCode === 'PRO_AGENT' || planCode === 'VIP_INMOBILIARIA') {
-    db.prepare('UPDATE users SET role = "AGENT" WHERE id = ? AND role = "BUYER"').run(req.user.userId);
+  if (planCode === 'PRO_AGENT' || planCode === 'VIP_INMOBILIARIA' || planCode === 'INDIVIDUAL') {
+    db.prepare("UPDATE users SET role = 'AGENT' WHERE id = ? AND role = 'BUYER'").run(req.user.userId);
   }
 
   res.status(200).json({

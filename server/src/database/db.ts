@@ -174,18 +174,35 @@ function seedInitialData() {
   insertPlan.run(
     'plan-free',
     'FREE',
-    'Particular / Comprador',
+    'Particular / Comprador (Gratis)',
     0.0,
     0.0,
-    1,
+    0,
     0,
     0,
     0,
     JSON.stringify([
-      '1 publicación básica',
-      'Búsqueda con filtros Quito & Metro',
+      'Búsqueda libre con filtros Quito & Metro',
       'Calculadora hipotecaria BIESS',
-      'Guardado de favoritos'
+      'Guardado de favoritos y comparador'
+    ])
+  );
+
+  insertPlan.run(
+    'plan-ind',
+    'INDIVIDUAL',
+    'Dueño Directo / Individual ($29/3 meses)',
+    29.0,
+    89.0,
+    1,
+    1,
+    0,
+    1,
+    JSON.stringify([
+      '1 publicación activa por 3 meses ($29)',
+      'Verificación notarial de gravámenes',
+      'Atención y leads directos por WhatsApp',
+      'Ficha técnica con planos y fotos HD'
     ])
   );
 

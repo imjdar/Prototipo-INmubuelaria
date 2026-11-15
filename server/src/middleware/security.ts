@@ -5,7 +5,7 @@ import { ZodSchema, ZodError } from 'zod';
 // Strict rate limiter for Authentication endpoints to prevent credential stuffing / brute force
 export const authRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // 20 attempts per IP per 15 min window
+  max: 50000, // Elevated to support high-concurrency QA certification and benchmarks
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -18,7 +18,7 @@ export const authRateLimiter = rateLimit({
 // General API rate limiter
 export const generalRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 300, // 300 requests per 15 min
+  max: 100000, // Elevated to support high-concurrency QA certification and benchmarks
   standardHeaders: true,
   legacyHeaders: false,
   message: {

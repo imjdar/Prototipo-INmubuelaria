@@ -6,6 +6,7 @@ const router = Router();
 
 router.use(authenticateJWT);
 router.get('/', getFavorites);
+router.post('/', addFavorite);
 router.post('/:propertyId', addFavorite);
 router.delete('/:propertyId', removeFavorite);
 

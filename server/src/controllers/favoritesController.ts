@@ -44,7 +44,11 @@ export function addFavorite(req: Request, res: Response): void {
     return;
   }
 
-  const { propertyId } = req.params;
+  const propertyId = req.params.propertyId || req.body?.propertyId;
+  if (!propertyId) {
+    res.status(400).json({ success: false, error: 'PROPERTY_ID_REQUERIDO' });
+    return;
+  }
 
   // Ensure property exists
   const prop = db.prepare('SELECT id FROM properties WHERE id = ?').get(propertyId);
