@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test:qa": "npx --yes tsx tests/run-all-qa.ts"
+    "test:qa": "npx --yes tsx tests/run-all-qa.ts",
+    "test:real": "npx --yes tsx tests/real-world-e2e-and-stress.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -29,6 +30,8 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "autocannon": "^9.0.0",
+    "puppeteer": "^25.17.0",
     "typescript": "^5.7.2",
     "vite": "^6.0.7"
   }
