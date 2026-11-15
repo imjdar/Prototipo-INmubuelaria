@@ -1,0 +1,46 @@
+# ==============================================================================
+# PROPIEDADES PREMIER - DOCKER COMPOSE PARA DESARROLLO LOCAL
+# Permite Hot Reload tanto en frontend (Vite) como en backend (tsx watch)
+# ==============================================================================
+
+services:
+  backend-dev:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    container_name: premier-backend-dev
+    command: ["npx", "tsx", "watch", "server/src/index.ts"]
+    environment:
+      - NODE_ENV=development
+      - PORT=4000
+      - DATABASE_PATH=/app/database/premier.db
+      - JWT_SECRET=dev_jwt_secret_key_quito_2026
+      - CORS_ORIGIN=http://localhost:3000,http://localhost:5173
+    volumes:
+      - ./server:/app/server
+      - ./src/data:/app/src/data
+      - ./src/types:/app/src/types
+      - ./database:/app/database
+    ports:
+      - "4000:4000"
+    networks:
+      - premier-dev-network
+
+  frontend-dev:
+    image: node:22-alpine
+    container_name: premier-frontend-dev
+    working_dir: /app
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3000"]
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend-dev
+    networks:
+      - premier-dev-network
+
+networks:
+  premier-dev-network:
+    driver: bridge

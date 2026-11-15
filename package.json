@@ -5,10 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "server": "tsx server/src/index.ts",
+    "build": "tsc && vite build && tsc -p tsconfig.server.json",
+    "build:client": "tsc && vite build",
+    "build:server": "tsc -p tsconfig.server.json",
     "preview": "vite preview",
-    "test:qa": "npx --yes tsx tests/run-all-qa.ts",
-    "test:real": "npx --yes tsx tests/real-world-e2e-and-stress.ts"
+    "test:qa": "tsx tests/run-all-qa.ts",
+    "test:real": "tsx tests/real-world-e2e-and-stress.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -20,6 +23,7 @@
     "lucide-react": "^1.16.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "tsx": "^4.23.15",
     "zod": "^4.6.7"
   },
   "devDependencies": {

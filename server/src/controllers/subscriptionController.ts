@@ -1,27 +1,29 @@
+/**
+ * PROPIEDADES PREMIER - SUBSCRIPTION CONTROLLER
+ * 
+ * Controlador HTTP para planes de membresía ($29, $49, $99), pasarela y upgrades.
+ * Principios SOLID:
+ * - SRP: Maneja el transporte HTTP y serialización para membresías.
+ * - DIP: Lógica de planes y cuotas delegada a subscriptionService.
+ */
+
 import { Request, Response } from 'express';
-import crypto from 'crypto';
-import { db } from '../database/db';
+import { subscriptionService, userRepository } from '../container';
 
 export function listPlans(_req: Request, res: Response): void {
-  const plans = db.prepare(`
-    SELECT id, code, name, monthly_price_usd, annual_price_usd, max_active_listings,
-           featured_tokens, has_video_reels, has_ai_guardian_priority, features_json
-    FROM membership_plans
-    WHERE is_active = 1
-    ORDER BY monthly_price_usd ASC
-  `).all() as any[];
+  const plans = subscriptionService.getAllPlans();
 
   const formattedPlans = plans.map(p => ({
     id: p.id,
     code: p.code,
     name: p.name,
-    priceMonthly: p.monthly_price_usd,
-    priceAnnual: p.annual_price_usd,
-    maxListings: p.max_active_listings,
-    featuredTokens: p.featured_tokens,
-    hasVideoReels: Boolean(p.has_video_reels),
-    hasAIGuardian: Boolean(p.has_ai_guardian_priority),
-    features: JSON.parse(p.features_json || '[]')
+    priceMonthly: p.monthlyPriceUsd,
+    priceAnnual: p.annualPriceUsd,
+    maxListings: p.maxActiveListings,
+    featuredTokens: p.featuredTokens,
+    hasVideoReels: p.hasVideoReels,
+    hasAIGuardian: p.hasAiGuardianPriority,
+    features: p.features
   }));
 
   res.status(200).json({
@@ -36,44 +38,37 @@ export function upgradePlan(req: Request, res: Response): void {
     return;
   }
 
-  const { planCode, paymentMethod = 'CREDIT_CARD' } = req.body;
+  const { planCode } = req.body;
 
-  const plan = db.prepare('SELECT id, code, name, max_active_listings FROM membership_plans WHERE code = ?').get(planCode) as any;
-  if (!plan) {
-    res.status(404).json({ success: false, error: 'PLAN_NO_ENCONTRADO', message: 'El plan de membresía seleccionado no existe.' });
-    return;
-  }
+  try {
+    const result = subscriptionService.upgradePlan(req.user.userId, planCode);
 
-  // Check existing active subscription
-  const existingSub = db.prepare("SELECT id, used_listings FROM user_subscriptions WHERE user_id = ? AND status = 'ACTIVE'").get(req.user.userId) as any;
-
-  if (existingSub) {
-    // Update existing subscription
-    db.prepare(`
-      UPDATE user_subscriptions 
-      SET plan_id = ?, payment_method = ?, current_period_end = datetime('now', '+3 months'), updated_at = datetime('now')
-      WHERE id = ?
-    `).run(plan.id, paymentMethod, existingSub.id);
-  } else {
-    // Insert new subscription
-    const subId = `sub-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
-    db.prepare(`
-      INSERT INTO user_subscriptions (id, user_id, plan_id, status, current_period_start, current_period_end, auto_renew, used_listings, payment_method)
-      VALUES (?, ?, ?, 'ACTIVE', datetime('now'), datetime('now', '+3 months'), 1, 0, ?)
-    `).run(subId, req.user.userId, plan.id, paymentMethod);
-  }
-
-  // Update user role to AGENT if upgrading to PRO_AGENT or VIP_INMOBILIARIA
-  if (planCode === 'PRO_AGENT' || planCode === 'VIP_INMOBILIARIA' || planCode === 'INDIVIDUAL') {
-    db.prepare("UPDATE users SET role = 'AGENT' WHERE id = ? AND role = 'BUYER'").run(req.user.userId);
-  }
-
-  res.status(200).json({
-    success: true,
-    message: `Plan actualizado con éxito a ${plan.name}.`,
-    data: {
-      planCode: plan.code,
-      maxListings: plan.max_active_listings
+    // Si el plan es comercial, actualiza rol a AGENT
+    if (['PRO_AGENT', 'VIP_INMOBILIARIA', 'INDIVIDUAL'].includes(planCode)) {
+      userRepository.update(req.user.userId, { role: 'AGENT' as any });
     }
-  });
+
+    res.status(200).json({
+      success: true,
+      message: `Plan actualizado con éxito a ${result.plan.name}.`,
+      data: {
+        planCode: result.plan.code,
+        maxListings: result.plan.maxActiveListings
+      }
+    });
+  } catch (error: any) {
+    if (error.message?.includes('PLAN_INVALIDO')) {
+      res.status(404).json({
+        success: false,
+        error: 'PLAN_NO_ENCONTRADO',
+        message: 'El plan de membresía seleccionado no existe.'
+      });
+      return;
+    }
+    res.status(500).json({
+      success: false,
+      error: 'ERROR_UPGRADE',
+      message: error.message
+    });
+  }
 }

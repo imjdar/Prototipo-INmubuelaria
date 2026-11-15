@@ -1,5 +1,14 @@
+/**
+ * PROPIEDADES PREMIER - FAVORITES CONTROLLER
+ * 
+ * Controlador HTTP para gestión de favoritos de usuario.
+ * Principios SOLID:
+ * - SRP: Maneja el transporte HTTP y serialización para favoritos.
+ * - DIP: Lógica de persistencia delegada a favoriteService.
+ */
+
 import { Request, Response } from 'express';
-import { db } from '../database/db';
+import { favoriteService, propertyRepository } from '../container';
 
 export function getFavorites(req: Request, res: Response): void {
   if (!req.user) {
@@ -7,32 +16,26 @@ export function getFavorites(req: Request, res: Response): void {
     return;
   }
 
-  const rows = db.prepare(`
-    SELECT p.* FROM properties p
-    JOIN user_favorites f ON p.id = f.property_id
-    WHERE f.user_id = ?
-    ORDER BY f.created_at DESC
-  `).all(req.user.userId) as any[];
+  const properties = favoriteService.getUserFavorites(req.user.userId);
+  const savedIds = favoriteService.getUserFavoriteIds(req.user.userId);
 
-  const properties = rows.map(r => ({
-    id: r.id,
-    code: r.code,
-    title: r.title,
-    price: r.price,
-    sector: r.sector,
-    type: r.property_type,
-    areaBuild: r.area_build,
-    bedrooms: r.bedrooms,
-    bathrooms: r.bathrooms,
-    image: r.image
+  const formattedProperties = properties.map(p => ({
+    id: p.id,
+    code: p.code,
+    title: p.title,
+    price: p.price,
+    sector: p.sector,
+    type: p.propertyType,
+    areaBuild: p.areaBuild,
+    bedrooms: p.bedrooms,
+    bathrooms: p.bathrooms,
+    image: p.image
   }));
-
-  const savedIds = properties.map(p => p.id);
 
   res.status(200).json({
     success: true,
     data: {
-      properties,
+      properties: formattedProperties,
       savedIds
     }
   });
@@ -50,17 +53,13 @@ export function addFavorite(req: Request, res: Response): void {
     return;
   }
 
-  // Ensure property exists
-  const prop = db.prepare('SELECT id FROM properties WHERE id = ?').get(propertyId);
+  const prop = propertyRepository.findById(propertyId);
   if (!prop) {
     res.status(404).json({ success: false, error: 'PROPIEDAD_NO_ENCONTRADA' });
     return;
   }
 
-  db.prepare(`
-    INSERT OR IGNORE INTO user_favorites (user_id, property_id)
-    VALUES (?, ?)
-  `).run(req.user.userId, propertyId);
+  favoriteService.addFavorite(req.user.userId, propertyId);
 
   res.status(200).json({
     success: true,
@@ -74,9 +73,8 @@ export function removeFavorite(req: Request, res: Response): void {
     return;
   }
 
-  const { propertyId } = req.params;
-
-  db.prepare('DELETE FROM user_favorites WHERE user_id = ? AND property_id = ?').run(req.user.userId, propertyId);
+  const propertyId = String(req.params.propertyId);
+  favoriteService.removeFavorite(req.user.userId, propertyId);
 
   res.status(200).json({
     success: true,
