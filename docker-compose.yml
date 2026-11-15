@@ -25,7 +25,7 @@ services:
       # Volumen nombrado para persistencia de la base de datos entre despliegues
       - premier-db-data:/app/database
     ports:
-      - "4000:4000"
+      - "${BACKEND_PORT:-4001}:4000"
     networks:
       - premier-network
     healthcheck:
@@ -45,8 +45,7 @@ services:
     container_name: premier-frontend
     restart: unless-stopped
     ports:
-      - "80:80"     # Puerto de producción web estándar
-      - "3000:80"   # Puerto alternativo para compatibilidad
+      - "${FRONTEND_PORT:-8080}:80"
     depends_on:
       backend:
         condition: service_healthy

@@ -11,7 +11,8 @@
     "build:server": "tsc -p tsconfig.server.json",
     "preview": "vite preview",
     "test:qa": "tsx tests/run-all-qa.ts",
-    "test:real": "tsx tests/real-world-e2e-and-stress.ts"
+    "test:real": "tsx tests/real-world-e2e-and-stress.ts",
+    "test:docker": "tsx tests/docker-live-verification.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

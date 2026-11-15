@@ -38,8 +38,8 @@ ENV NODE_ENV=production \
     PORT=4000 \
     DATABASE_PATH=/app/database/premier.db
 
-# Crear directorio para volumen persistente de base de datos SQLite
-RUN mkdir -p /app/database && chown -R node:node /app
+# Crear directorio para volumen persistente de base de datos SQLite con permisos de escritura
+RUN mkdir -p /app/database && chown -R node:node /app && chmod 777 /app/database
 
 # Copiar dependencias y fuentes desde el builder
 COPY --from=builder --chown=node:node /app/node_modules ./node_modules
@@ -62,5 +62,5 @@ EXPOSE 4000
 HEALTHCHECK --interval=20s --timeout=5s --start-period=10s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:4000/api/v1/health || exit 1
 
-# Iniciar servidor backend con tsx
-CMD ["node_modules/.bin/tsx", "server/src/index.ts"]
+# Iniciar servidor backend con npx tsx
+CMD ["npx", "tsx", "server/src/index.ts"]
