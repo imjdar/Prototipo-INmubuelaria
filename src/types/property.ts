@@ -65,6 +65,8 @@ export interface LogisticsInfo {
 export interface MapCoordinates {
   x: number; // Porcentaje X en el mapa vectorial (0 - 100)
   y: number; // Porcentaje Y en el mapa vectorial (0 - 100)
+  lat?: number; // Latitud GPS real en Quito y sus valles
+  lng?: number; // Longitud GPS real en Quito y sus valles
 }
 
 export interface Property {

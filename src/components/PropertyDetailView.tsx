@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Property } from '../types/property';
 import { MortgageCalculator } from './MortgageCalculator';
 import { PriceOpportunityBadge } from './PriceOpportunityBadge';
+import { RealGoogleMap } from './RealGoogleMap';
 import { SECTOR_BENCHMARKS } from '../services/valuationService';
 import { 
   ArrowLeft, 
@@ -18,7 +19,8 @@ import {
   Camera, 
   Play, 
   Box, 
-  Share2 
+  Share2,
+  ExternalLink
 } from 'lucide-react';
 
 interface PropertyDetailViewProps {
@@ -578,6 +580,63 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
                   Por Ruta Viva sin semáforos
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Real Google Maps Location & Neighborhood */}
+          <div style={{ marginTop: '2.5rem' }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '0.75rem',
+              flexWrap: 'wrap',
+              gap: '0.5rem'
+            }}>
+              <div>
+                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.25rem', margin: 0, color: 'var(--text-primary)' }}>
+                  Ubicación & Entorno Geo-Referenciado
+                </h3>
+                <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  {property.microzone}, {property.sector}
+                </p>
+              </div>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${property.coordinates.lat || -0.205},${property.coordinates.lng || -78.435}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  padding: '0.45rem 0.85rem',
+                  borderRadius: '8px',
+                  border: '1px solid #CBD5E1',
+                  background: '#FFFFFF',
+                  color: '#0284C7',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+                }}
+              >
+                <span>Abrir en Google Maps</span>
+                <ExternalLink size={13} />
+              </a>
+            </div>
+
+            <div style={{
+              height: '320px',
+              borderRadius: '16px',
+              overflow: 'hidden',
+              border: '1px solid var(--border-subtle)',
+              boxShadow: '0 4px 20px rgba(33, 49, 69, 0.08)'
+            }}>
+              <RealGoogleMap
+                properties={[property]}
+                selectedProperty={property}
+                height="320px"
+              />
             </div>
           </div>
         </div>

@@ -46,7 +46,7 @@ export const PROPERTIES: Property[] = [
       aeropuerto: '14 min (Ruta Viva)',
       quitoCentro: '18 min (Túnel Guayasamín)'
     },
-    coordinates: { x: 74, y: 55 }
+    coordinates: { x: 74, y: 55, lat: -0.2052, lng: -78.4365 }
   },
   {
     id: 'VU-PUE-019',
@@ -93,7 +93,7 @@ export const PROPERTIES: Property[] = [
       aeropuerto: '12 min (Acceso Expreso)',
       quitoCentro: '25 min'
     },
-    coordinates: { x: 88, y: 48 }
+    coordinates: { x: 88, y: 48, lat: -0.2190, lng: -78.3485 }
   },
   {
     id: 'VU-GON-012',
@@ -140,7 +140,7 @@ export const PROPERTIES: Property[] = [
       aeropuerto: '35 min',
       quitoCentro: '5 min a La Carolina'
     },
-    coordinates: { x: 38, y: 52 }
+    coordinates: { x: 38, y: 52, lat: -0.2018, lng: -78.4795 }
   },
   {
     id: 'VU-CAR-005',
@@ -186,7 +186,7 @@ export const PROPERTIES: Property[] = [
       aeropuerto: '40 min',
       quitoCentro: '0 min (Corazón Financiero)'
     },
-    coordinates: { x: 30, y: 38 }
+    coordinates: { x: 30, y: 38, lat: -0.1812, lng: -78.4839 }
   },
   {
     id: 'VU-TUM-031',
@@ -233,7 +233,7 @@ export const PROPERTIES: Property[] = [
       aeropuerto: '20 min',
       quitoCentro: '22 min'
     },
-    coordinates: { x: 80, y: 65 }
+    coordinates: { x: 80, y: 65, lat: -0.2160, lng: -78.4020 }
   },
   {
     id: 'VU-NAY-017',
@@ -280,7 +280,7 @@ export const PROPERTIES: Property[] = [
       aeropuerto: '22 min',
       quitoCentro: '8 min (Túnel Guayasamín)'
     },
-    coordinates: { x: 55, y: 46 },
+    coordinates: { x: 55, y: 46, lat: -0.1885, lng: -78.4520 },
     operationType: 'VENTA'
   },
   {
@@ -328,7 +328,7 @@ export const PROPERTIES: Property[] = [
       aeropuerto: '35 min',
       quitoCentro: '12 min'
     },
-    coordinates: { x: 38, y: 32 }
+    coordinates: { x: 38, y: 32, lat: -0.1585, lng: -78.4980 }
   },
   {
     id: 'VU-REP-002',
@@ -382,7 +382,7 @@ export const PROPERTIES: Property[] = [
       aeropuerto: '32 min',
       quitoCentro: '10 min'
     },
-    coordinates: { x: 42, y: 36 }
+    coordinates: { x: 42, y: 36, lat: -0.1830, lng: -78.4815 }
   },
   {
     id: 'VU-CUM-003',
@@ -429,7 +429,7 @@ export const PROPERTIES: Property[] = [
       aeropuerto: '16 min',
       quitoCentro: '15 min'
     },
-    coordinates: { x: 72, y: 52 }
+    coordinates: { x: 72, y: 52, lat: -0.2095, lng: -78.4290 }
   },
   {
     id: 'VU-BOD-004',
@@ -483,7 +483,7 @@ export const PROPERTIES: Property[] = [
       aeropuerto: '20 min',
       quitoCentro: '14 min'
     },
-    coordinates: { x: 58, y: 44 }
+    coordinates: { x: 58, y: 44, lat: -0.2250, lng: -78.3320 }
   },
   {
     id: 'VU-PROJ-001',
@@ -539,7 +539,7 @@ export const PROPERTIES: Property[] = [
       aeropuerto: '30 min',
       quitoCentro: '10 min'
     },
-    coordinates: { x: 44, y: 38 }
+    coordinates: { x: 44, y: 38, lat: -0.1795, lng: -78.4855 }
   },
   {
     id: 'VU-PROJ-002',
@@ -595,6 +595,6 @@ export const PROPERTIES: Property[] = [
       aeropuerto: '15 min',
       quitoCentro: '16 min'
     },
-    coordinates: { x: 75, y: 56 }
+    coordinates: { x: 75, y: 56, lat: -0.2010, lng: -78.4410 }
   }
 ];

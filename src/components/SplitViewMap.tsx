@@ -1,7 +1,13 @@
-import React from 'react';
+/**
+ * PROPIEDADES PREMIER - CARTOGRAFÍA DIVIDIDA (SPLIT VIEW MAP)
+ * Vista interactiva dividida: catálogo filtrado a la izquierda y mapa real de Google Maps a la derecha.
+ */
+
+import React, { useState } from 'react';
 import { Property } from '../types/property';
 import { PropertyCard } from './PropertyCard';
-import { MapPin, Navigation } from 'lucide-react';
+import { RealGoogleMap } from './RealGoogleMap';
+import { Grid, Map as MapIcon, SlidersHorizontal } from 'lucide-react';
 
 interface SplitViewMapProps {
   properties: Property[];
@@ -28,25 +34,122 @@ export const SplitViewMap: React.FC<SplitViewMapProps> = ({
   onContactWhatsApp,
   onSwitchToCatalog
 }) => {
+  const [selectedMapProperty, setSelectedMapProperty] = useState<Property | null>(null);
+
+  const handleSelectOnMap = (property: Property) => {
+    setSelectedMapProperty(property);
+    onSelectProperty(property);
+  };
+
   return (
-    <div>
-      <div className="section-header">
+    <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '1rem 1.5rem' }}>
+      {/* Top Header Bar */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '1.25rem',
+        paddingBottom: '0.75rem',
+        borderBottom: '1px solid #E2E8F0',
+        flexWrap: 'wrap',
+        gap: '0.75rem'
+      }}>
         <div>
-          <div className="section-pretitle">Explorador Cartográfico</div>
-          <h2 className="section-title">Mapa Interactivo de Valles & Urbe</h2>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.35rem',
+            color: '#FEA004',
+            fontSize: '0.75rem',
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em'
+          }}>
+            <MapIcon size={14} />
+            <span>Cartografía Real Satelital & Urbana</span>
+          </div>
+          <h1 style={{
+            margin: '0.2rem 0 0 0',
+            fontSize: '1.65rem',
+            fontWeight: 800,
+            color: '#213145',
+            letterSpacing: '-0.02em'
+          }}>
+            Mapa Interactivo de Propiedades en Quito y sus Valles
+          </h1>
+          <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: '#64748B' }}>
+            Explora {properties.length} propiedades geo-referenciadas con Google Maps, vistas satelitales y relieve andino.
+          </p>
         </div>
-        <button className="btn-card-detail" onClick={onSwitchToCatalog}>
-          Ver en Cuadrícula Completa
-        </button>
+
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button
+            onClick={onSwitchToCatalog}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              padding: '0.6rem 1.1rem',
+              borderRadius: '10px',
+              border: '1px solid #CBD5E1',
+              background: '#FFFFFF',
+              color: '#213145',
+              fontSize: '0.85rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <Grid size={16} />
+            <span>Ver en Cuadrícula Completa</span>
+          </button>
+        </div>
       </div>
 
-      <div className="split-view-container">
-        {/* Left Side: Filtered Cards */}
-        <div>
-          <div className="properties-grid" style={{ gridTemplateColumns: '1fr' }}>
-            {properties.map((p) => (
+      {/* Split View 2-Column Grid */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'minmax(340px, 480px) 1fr',
+        gap: '1.5rem',
+        minHeight: 'calc(100vh - 220px)',
+        alignItems: 'stretch'
+      }}>
+        {/* Left Column: Scrollable Property Cards */}
+        <div style={{
+          overflowY: 'auto',
+          maxHeight: 'calc(100vh - 220px)',
+          paddingRight: '0.5rem',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1rem'
+        }}>
+          <div style={{
+            fontSize: '0.82rem',
+            fontWeight: 700,
+            color: '#64748B',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '0.25rem 0'
+          }}>
+            <span>MOSTRANDO {properties.length} INMUEBLES</span>
+            <span style={{ fontSize: '0.75rem', color: '#059669', background: '#ECFDF5', padding: '2px 8px', borderRadius: '999px', fontWeight: 700 }}>
+              ● Sincronizado en Vivo con Mapa
+            </span>
+          </div>
+
+          {properties.map((p) => (
+            <div
+              key={p.id}
+              onMouseEnter={() => setSelectedMapProperty(p)}
+              style={{
+                transition: 'transform 0.15s ease',
+                borderRadius: '16px',
+                outline: selectedMapProperty?.id === p.id ? '2px solid #FEA004' : 'none'
+              }}
+            >
               <PropertyCard
-                key={p.id}
                 property={p}
                 isFavorite={savedPropertyIds.includes(p.id)}
                 isCompared={comparedPropertyIds.includes(p.id)}
@@ -57,136 +160,42 @@ export const SplitViewMap: React.FC<SplitViewMapProps> = ({
                 onSelectProperty={onSelectProperty}
                 onContactWhatsApp={onContactWhatsApp}
               />
-            ))}
-          </div>
+            </div>
+          ))}
+
+          {properties.length === 0 && (
+            <div style={{
+              textAlign: 'center',
+              padding: '3rem 1.5rem',
+              background: '#F8FAFC',
+              borderRadius: '16px',
+              border: '1px dashed #CBD5E1',
+              color: '#64748B'
+            }}>
+              <SlidersHorizontal size={32} color="#94A3B8" style={{ margin: '0 auto 0.5rem auto' }} />
+              <h3 style={{ margin: '0 0 0.5rem 0', color: '#213145', fontSize: '1.1rem' }}>No hay propiedades en este filtro</h3>
+              <p style={{ margin: 0, fontSize: '0.85rem' }}>Intenta seleccionar "Todos los Sectores" o ampliar el rango de precio.</p>
+            </div>
+          )}
         </div>
 
-        {/* Right Side: Vector Andean Cartography */}
-        <div className="map-column">
-          <div className="map-header">
-            <div className="map-header-title">
-              <Navigation size={15} style={{ color: 'var(--accent-gold)' }} />
-              <span>Distrito Metropolitano & Valles</span>
-            </div>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <span className="btn-mode active" style={{ fontSize: '0.65rem' }}>Ruta Viva</span>
-              <span className="btn-mode active" style={{ fontSize: '0.65rem' }}>Metro</span>
-              <span className="btn-mode" style={{ fontSize: '0.65rem' }}>Colegios</span>
-            </div>
-          </div>
-
-          <div className="map-canvas-area">
-            {/* Custom SVG Topography */}
-            <svg
-              style={{ width: '100%', height: '100%' }}
-              viewBox="0 0 100 100"
-              preserveAspectRatio="none"
-            >
-              {/* Western High Andean Ridge (Quito Urban Plateau) */}
-              <path d="M 0,0 L 45,0 L 48,30 L 40,65 L 35,100 L 0,100 Z" fill="#14181E" opacity="0.95" />
-              
-              {/* Eastern Warm Valley Basin (Cumbayá, Tumbaco, Puembo) */}
-              <path d="M 45,0 L 100,0 L 100,100 L 35,100 L 40,65 L 48,30 Z" fill="#1B222C" />
-
-              {/* Guápulo Canyon descent line */}
-              <path
-                d="M 45,0 Q 48,35 40,65 T 35,100"
-                fill="none"
-                stroke="#C2A268"
-                strokeWidth="0.3"
-                strokeDasharray="1,1"
-                opacity="0.5"
-              />
-
-              {/* Ruta Viva Express Highway */}
-              <path
-                d="M 43,45 Q 60,48 75,55 T 90,48"
-                fill="none"
-                stroke="#C2A268"
-                strokeWidth="0.9"
-                opacity="0.8"
-              />
-
-              {/* Metro de Quito rail corridor */}
-              <path
-                d="M 28,15 L 30,35 L 33,55 L 26,85"
-                fill="none"
-                stroke="#C026D3"
-                strokeWidth="0.6"
-                strokeDasharray="1.5,1"
-                opacity="0.75"
-              />
-
-              {/* Topographic Labels */}
-              <text x="12" y="22" fill="#757B85" fontSize="2.5" fontFamily="'Plus Jakarta Sans', sans-serif" fontWeight="700">
-                HIPERCENTRO QUITO (2,810m)
-              </text>
-              <text x="56" y="32" fill="#C2A268" fontSize="2.5" fontFamily="'Plus Jakarta Sans', sans-serif" fontWeight="700">
-                VALLE DE CUMBAYÁ (2,200m · 22°C)
-              </text>
-              <text x="68" y="78" fill="#757B85" fontSize="2.3" fontFamily="'Plus Jakarta Sans', sans-serif" fontWeight="600">
-                TUMBACO & CHAQUIÑÁN
-              </text>
-              <text x="74" y="42" fill="#A88749" fontSize="2.2" fontFamily="'Plus Jakarta Sans', sans-serif" fontWeight="600">
-                PUEMBO & AEROPUERTO UIO
-              </text>
-            </svg>
-
-            {/* Interactive HTML Price Pin Markers */}
-            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'auto' }}>
-              {properties.map((p) => (
-                <div
-                  key={p.id}
-                  className="map-pin"
-                  style={{
-                    position: 'absolute',
-                    left: `${p.coordinates.x}%`,
-                    top: `${p.coordinates.y}%`,
-                    transform: 'translate(-50%, -100%)'
-                  }}
-                  onClick={() => onSelectProperty(p)}
-                  title={`${p.title} - $${Math.round(p.price / 1000)}k`}
-                >
-                  <div className="map-pin-badge">
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
-                      <MapPin size={10} style={{ color: 'var(--accent-gold)' }} />
-                      {p.features.hasGenerator ? '⚡ ' : ''}${Math.round(p.price / 1000)}k
-                    </span>
-                  </div>
-                  <div style={{ width: '2px', height: '8px', background: 'var(--accent-gold)', margin: '0 auto' }}></div>
-                </div>
-              ))}
-            </div>
-            {/* Floating VER LISTA button matching Wireframe 03 */}
-            <div style={{ position: 'absolute', bottom: '1.5rem', left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}>
-              <button
-                onClick={onSwitchToCatalog}
-                style={{
-                  background: '#FEA004',
-                  color: '#FFFFFF',
-                  border: 'none',
-                  borderRadius: '999px',
-                  padding: '0.65rem 1.85rem',
-                  fontSize: '0.9rem',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  boxShadow: '0 6px 20px rgba(254, 160, 4, 0.45)',
-                  letterSpacing: '0.05em',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <span>VER LISTA</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="map-legend">
-            <span>Altitud: 2,150m (Puembo) ➔ 2,820m (Quito)</span>
-            <span>Microclima: 17°C a 23°C</span>
-          </div>
+        {/* Right Column: Real Google Maps Interactive Canvas */}
+        <div style={{
+          position: 'sticky',
+          top: '90px',
+          height: 'calc(100vh - 220px)',
+          borderRadius: '18px',
+          overflow: 'hidden',
+          boxShadow: '0 8px 30px rgba(33, 49, 69, 0.12)',
+          border: '1px solid #E2E8F0',
+          background: '#E2E8F0'
+        }}>
+          <RealGoogleMap
+            properties={properties}
+            selectedProperty={selectedMapProperty}
+            onSelectProperty={handleSelectOnMap}
+            height="100%"
+          />
         </div>
       </div>
     </div>
