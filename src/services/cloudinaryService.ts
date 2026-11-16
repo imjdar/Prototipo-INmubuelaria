@@ -42,8 +42,8 @@ export class CloudinaryService {
    * Obtiene la configuración de Cloudinary desde variables de entorno o almacenamiento local
    */
   public getConfig(): CloudinaryConfig {
-    const defaultCloud = 'propiedades-premier-ec';
-    const defaultPreset = 'premier_unsigned_preset';
+    const defaultCloud = 'dgsj8owve';
+    const defaultPreset = 'premier_preset';
 
     if (typeof window !== 'undefined') {
       const storedCloud = localStorage.getItem('premier_cloudinary_cloud');
