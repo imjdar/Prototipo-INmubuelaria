@@ -47,3 +47,4 @@ backups/
 *.db.gz
 *.sql.gz
 *.pdf
+*.html
