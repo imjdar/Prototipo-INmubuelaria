@@ -41,3 +41,8 @@ coverage/
 # SQLite WAL and SHM files
 *.db-shm
 *.db-wal
+
+# Copias de seguridad locales
+backups/
+*.db.gz
+*.sql.gz

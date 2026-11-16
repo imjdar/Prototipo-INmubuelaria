@@ -1,0 +1,41 @@
+name: CD Pipeline - Despliegue Automatizado en Producción (VPS)
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy-vps:
+    name: 🚀 Despliegue en Servidor VPS (Ubuntu 24.04 LTS)
+    runs-on: ubuntu-latest
+    if: github.repository == 'imjdar/Prototipo-INmubuelaria'
+
+    steps:
+      - name: Checkout Código Fuente
+        uses: actions/checkout@v4
+
+      - name: Despliegue vía SSH en Servidor VPS
+        uses: appleboy/ssh-action@v1.0.3
+        if: ${{ env.VPS_SSH_HOST != '' }}
+        env:
+          VPS_SSH_HOST: ${{ secrets.VPS_SSH_HOST }}
+          VPS_SSH_USER: ${{ secrets.VPS_SSH_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT || 22 }}
+        with:
+          host: ${{ secrets.VPS_SSH_HOST }}
+          username: ${{ secrets.VPS_SSH_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_SSH_PORT || 22 }}
+          script: |
+            set -e
+            echo "📥 Actualizando repositorio en servidor VPS..."
+            cd /home/${{ secrets.VPS_SSH_USER }}/app || cd /var/www/propiedades-premier
+            git fetch origin main
+            git reset --hard origin/main
+            
+            echo "🚀 Ejecutando script de despliegue automatizado..."
+            chmod +x deploy.sh
+            ./deploy.sh
+            
+            echo "✅ ¡Despliegue en producción completado con éxito!"
