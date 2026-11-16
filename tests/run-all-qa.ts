@@ -17,6 +17,7 @@ import { runCompetitorFeaturesQA } from './qa-competitor-features';
 import { runBackendSecurityAndQA } from './qa-backend-fullstack';
 import { runSprint1E2EUseCases } from './e2e-sprint1-use-cases';
 import { runAdversarialAndStressTests } from './stress-adversarial-concurrency';
+import { runAuditMitigationTests } from './audit-security-and-concurrency';
 
 async function main() {
   console.log('╔════════════════════════════════════════════════════════════════════╗');
@@ -39,10 +40,11 @@ async function main() {
   const backendSec = await runBackendSecurityAndQA();
   const e2eUseCases = await runSprint1E2EUseCases();
   const adversarialStress = await runAdversarialAndStressTests();
+  const auditMitigation = await runAuditMitigationTests();
 
   const totalTime = ((performance.now() - start) / 1000).toFixed(3);
-  const totalPassed = whitebox.passed + graybox.passed + blackbox.passed + stress.passed + multiuser.passed + hundreds.passed + ihcAndSolid.passed + responsive.passed + personas + competitor.passed + backendSec.passed + e2eUseCases.passedTests + adversarialStress.passedTests;
-  const totalFailed = whitebox.failed + graybox.failed + blackbox.failed + stress.failed + multiuser.failed + hundreds.failed + ihcAndSolid.failed + responsive.failed + competitor.failed + backendSec.failed + (e2eUseCases.totalTests - e2eUseCases.passedTests) + (adversarialStress.totalTests - adversarialStress.passedTests);
+  const totalPassed = whitebox.passed + graybox.passed + blackbox.passed + stress.passed + multiuser.passed + hundreds.passed + ihcAndSolid.passed + responsive.passed + personas + competitor.passed + backendSec.passed + e2eUseCases.passedTests + adversarialStress.passedTests + auditMitigation.passed;
+  const totalFailed = whitebox.failed + graybox.failed + blackbox.failed + stress.failed + multiuser.failed + hundreds.failed + ihcAndSolid.failed + responsive.failed + competitor.failed + backendSec.failed + (e2eUseCases.totalTests - e2eUseCases.passedTests) + (adversarialStress.totalTests - adversarialStress.passedTests) + auditMitigation.failed;
 
   console.log('\n==========================================================');
   console.log('📊 RESUMEN EJECUTIVO DE CERTIFICACIÓN QA INTEGRAL');
@@ -60,6 +62,7 @@ async function main() {
   console.log(`  • Ciberseguridad & Backend Real (API v1): ${backendSec.passed} aprobadas / ${backendSec.failed} fallidas`);
   console.log(`  • Casos de Uso E2E Sprint 1 (Word Docs): ${e2eUseCases.passedTests} aprobadas / ${e2eUseCases.totalTests - e2eUseCases.passedTests} fallidas`);
   console.log(`  • Anti-Trampa, Fuzzing & Concurrencia Extrema: ${adversarialStress.passedTests} aprobadas / ${adversarialStress.totalTests - adversarialStress.passedTests} fallidas`);
+  console.log(`  • Mitigación Auditoría & Arquitectura 2.0: ${auditMitigation.passed} aprobadas / ${auditMitigation.failed} fallidas`);
   console.log('──────────────────────────────────────────────────────────');
   console.log(`  TOTAL: ${totalPassed} pruebas APROBADAS / ${totalFailed} FALLIDAS en ${totalTime}s`);
   console.log('==========================================================\n');

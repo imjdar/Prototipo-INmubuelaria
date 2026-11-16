@@ -5,6 +5,7 @@ import favoriteRoutes from './favoriteRoutes';
 import subscriptionRoutes from './subscriptionRoutes';
 import agentRoutes from './agentRoutes';
 import billingRoutes from './billingRoutes';
+import mediaRoutes from './mediaRoutes';
 
 const router = Router();
 
@@ -13,6 +14,7 @@ router.get('/health', (_req, res) => {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     service: 'Propiedades Premier Core API',
+    clusterPid: process.pid,
     version: '1.0.0'
   });
 });
@@ -23,5 +25,6 @@ router.use('/favorites', favoriteRoutes);
 router.use('/subscriptions', subscriptionRoutes);
 router.use('/agents', agentRoutes);
 router.use('/billing', billingRoutes);
+router.use('/', mediaRoutes); // Mounts /media/presigned-url and /reels
 
 export default router;

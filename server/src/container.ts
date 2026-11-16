@@ -15,6 +15,7 @@ import { SqliteFavoriteRepository } from './repositories/sqliteFavoriteRepositor
 import { SqliteRefreshTokenRepository } from './repositories/sqliteRefreshTokenRepository';
 import { SqliteAgentRepository } from './repositories/sqliteAgentRepository';
 import { SqliteBillingRepository } from './repositories/sqliteBillingRepository';
+import { InMemorySocialReelRepository } from './repositories/socialReelRepository';
 
 // Servicios
 import { PropertyService } from './services/propertyService';
@@ -31,6 +32,7 @@ export const favoriteRepository = new SqliteFavoriteRepository(db);
 export const refreshTokenRepository = new SqliteRefreshTokenRepository(db);
 export const agentRepository = new SqliteAgentRepository(db);
 export const billingRepository = new SqliteBillingRepository(db);
+export const socialReelRepository = new InMemorySocialReelRepository();
 
 // 2. Inyección de Repositorios en Servicios (Capa de Lógica de Negocio - BLL)
 export const propertyService = new PropertyService(propertyRepository, subscriptionRepository);
