@@ -85,7 +85,8 @@ export class GoogleAuthService {
       const stored = localStorage.getItem('premier_google_client_id');
       if (stored) return stored;
     }
-    return (import.meta as unknown as { env: Record<string, string> }).env?.VITE_GOOGLE_CLIENT_ID || '';
+    const env = (import.meta as unknown as { env: Record<string, string> }).env || {};
+    return env.VITE_GOOGLE_CLIENT_ID || '51740980840-5jirn1morilo3co8jfqll3bkf2qbrf0s.apps.googleusercontent.com';
   }
 
   /**
