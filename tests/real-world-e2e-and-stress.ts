@@ -243,7 +243,12 @@ export async function runRealWorldTestSuite() {
       // Cambiar a vista mapa
       const mapSwitched = await page!.evaluate(() => {
         const btns = Array.from(document.querySelectorAll('button'));
-        const btn = btns.find(b => (b.getAttribute('aria-label')?.toLowerCase().includes('mapa') || b.innerText.toLowerCase().includes('mapa')));
+        const btn = btns.find(b => 
+          b.getAttribute('aria-label')?.toLowerCase().includes('mapa vectorial') || 
+          b.getAttribute('title')?.toLowerCase().includes('vista mapa') ||
+          b.innerText.trim() === 'VER MAPA' || 
+          b.innerText.trim() === 'Mapa'
+        );
         if (btn) {
           btn.click();
           return true;
@@ -257,7 +262,7 @@ export async function runRealWorldTestSuite() {
 
       // Verificar que los pines con precio existan
       const pinCount = await page!.evaluate(() => {
-        return document.querySelectorAll('.map-pin, .map-pin-badge').length;
+        return document.querySelectorAll('.map-pin, .map-pin-badge, .custom-luxury-marker').length;
       });
       assert.ok(pinCount >= 10, `Pines cartográficos renderizados en el lienzo: ${pinCount}`);
 
@@ -266,7 +271,7 @@ export async function runRealWorldTestSuite() {
       // Volver a cuadrícula haciendo clic en VER LISTA
       await page!.evaluate(() => {
         const btns = Array.from(document.querySelectorAll('button'));
-        const listBtn = btns.find(b => b.innerText.includes('VER LISTA') || b.innerText.includes('Cuadrícula'));
+        const listBtn = btns.find(b => b.innerText.includes('VER LISTA') || b.innerText.includes('Cuadrícula') || b.innerText.includes('Catálogo'));
         listBtn?.click();
       });
       await new Promise(r => setTimeout(r, 400));

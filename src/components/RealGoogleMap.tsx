@@ -165,7 +165,7 @@ export const RealGoogleMap: React.FC<RealGoogleMapProps> = ({
 
       // HTML del Marcador personalizado estilo Google Maps Luxury
       const markerHtml = `
-        <div class="custom-luxury-marker ${isSelected ? 'is-selected' : ''}" style="
+        <div class="custom-luxury-marker map-pin-badge ${isSelected ? 'is-selected' : ''}" style="
           display: inline-flex;
           align-items: center;
           gap: 4px;

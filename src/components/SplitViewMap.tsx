@@ -42,7 +42,7 @@ export const SplitViewMap: React.FC<SplitViewMapProps> = ({
   };
 
   return (
-    <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '1rem 1.5rem' }}>
+    <div className="split-view-container" style={{ maxWidth: '1440px', margin: '0 auto', padding: '1rem 1.5rem' }}>
       {/* Top Header Bar */}
       <div style={{
         display: 'flex',
