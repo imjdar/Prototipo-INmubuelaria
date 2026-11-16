@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "test:qa": "tsx tests/run-all-qa.ts",
     "test:real": "tsx tests/real-world-e2e-and-stress.ts",
-    "test:docker": "tsx tests/docker-live-verification.ts"
+    "test:docker": "tsx tests/docker-live-verification.ts",
+    "report:pdf": "node scripts/generate-pdf-report.cjs"
   },
   "dependencies": {
     "@types/leaflet": "^1.9.22",
