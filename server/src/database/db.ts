@@ -338,12 +338,112 @@ function seedInitialData() {
     'Registro Metropolitano Central'
   );
 
-  // 3. Assign Pro Subscription to Mateo Serrano
+  // Gabriela Endara (Agent Metropolitan)
+  insertUser.run(
+    'usr-gabriela-endara-004',
+    'gabriela.endara@premiermetropolitan.ec',
+    agentPassHash,
+    'Arq. Gabriela Endara',
+    '+593 99 432 1098',
+    'AGENT',
+    'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=256&q=80',
+    1,
+    'Premier Metropolitan Real Estate',
+    'Lic. Notarial #0811 DMQ'
+  );
+
+  // Paulina Barahona (Puembo Country)
+  insertUser.run(
+    'usr-paulina-barahona-005',
+    'paulina.barahona@puembocountry.ec',
+    agentPassHash,
+    'Dra. Paulina Barahona',
+    '+593 99 318 4590',
+    'AGENT',
+    'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=256&q=80',
+    1,
+    'Puembo Country Realty',
+    'Lic. ACBIR-Pichincha #0318'
+  );
+
+  // Diego Falconí (Investor Specialist)
+  insertUser.run(
+    'usr-diego-falconi-006',
+    'diego.falconi@capitalpartners.ec',
+    agentPassHash,
+    'Ing. Diego Falconí',
+    '+593 99 923 1478',
+    'AGENT',
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80',
+    1,
+    'Metropolitan Capital Partners',
+    'Lic. Notarial DMQ #0923'
+  );
+
+  // Carlos Villacreses (Tumbaco Specialist)
+  insertUser.run(
+    'usr-carlos-villacreses-007',
+    'carlos.villacreses@valleandino.ec',
+    agentPassHash,
+    'Lic. Carlos Villacreses',
+    '+593 98 765 4321',
+    'AGENT',
+    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80',
+    1,
+    'Valle Andino PropTech',
+    'Lic. Notarial #0214 DMQ'
+  );
+
+  // Roberto Noboa (González Suárez Specialist)
+  insertUser.run(
+    'usr-roberto-noboa-008',
+    'roberto.noboa@noboa-asociados.ec',
+    agentPassHash,
+    'Abg. Roberto Noboa',
+    '+593 98 155 9900',
+    'AGENT',
+    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&q=80',
+    1,
+    'Noboa & Asociados Real Estate',
+    'Lic. Registro Notarial DMQ #0155'
+  );
+
+  // Additional Real Buyers / Investors
+  insertUser.run(
+    'usr-patricio-alvarez-009',
+    'patricio.alvarez@corpgrupo.ec',
+    buyerPassHash,
+    'Dr. Patricio Álvarez Larrea',
+    '+593 99 222 3344',
+    'BUYER',
+    'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=256&q=80',
+    1,
+    'Fideicomiso Inmobiliario San Juan',
+    null
+  );
+
+  insertUser.run(
+    'usr-valeria-cisneros-010',
+    'valeria.cisneros@techstartup.ec',
+    buyerPassHash,
+    'Ing. Valeria Cisneros',
+    '+593 98 444 5566',
+    'BUYER',
+    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80',
+    1,
+    'Andean Tech Ventures',
+    null
+  );
+
+  // 3. Assign Pro Subscriptions
   const insertSub = db.prepare(`
     INSERT INTO user_subscriptions (id, user_id, plan_id, status, current_period_start, current_period_end, auto_renew, used_listings, payment_method)
     VALUES (?, ?, ?, ?, datetime('now'), datetime('now', '+1 year'), 1, ?, 'CREDIT_CARD')
   `);
   insertSub.run('sub-mateo-001', agentId, 'plan-pro', 'ACTIVE', 4);
+  insertSub.run('sub-gabriela-002', 'usr-gabriela-endara-004', 'plan-pro', 'ACTIVE', 3);
+  insertSub.run('sub-paulina-003', 'usr-paulina-barahona-005', 'plan-pro', 'ACTIVE', 2);
+  insertSub.run('sub-diego-004', 'usr-diego-falconi-006', 'plan-vip', 'ACTIVE', 6);
 
   // 4. Seed Properties from PROPERTIES dataset
   const insertProp = db.prepare(`
@@ -380,9 +480,9 @@ function seedInitialData() {
       p.legalStatus,
       JSON.stringify(p.agent),
       JSON.stringify(p.logistics),
-      // Approximate geographic coordinates for Quito sectors
-      p.sector === 'Cumbayá' ? -0.201 : p.sector === 'Puembo' ? -0.185 : p.sector === 'La Carolina' ? -0.181 : -0.215,
-      p.sector === 'Cumbayá' ? -78.435 : p.sector === 'Puembo' ? -78.365 : p.sector === 'La Carolina' ? -78.484 : -78.480,
+      // Accurate coordinates from property or sector fallback
+      p.coordinates?.lat ?? (p.sector === 'Cumbayá' ? -0.201 : p.sector === 'Puembo' ? -0.185 : p.sector === 'La Carolina' ? -0.181 : -0.215),
+      p.coordinates?.lng ?? (p.sector === 'Cumbayá' ? -78.435 : p.sector === 'Puembo' ? -78.365 : p.sector === 'La Carolina' ? -78.484 : -78.480),
       agentId
     );
   }
