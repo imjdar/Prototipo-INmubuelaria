@@ -252,24 +252,25 @@ export const RealGoogleMap: React.FC<RealGoogleMapProps> = ({
   };
 
   return (
-    <div style={{ position: 'relative', width: '100%', height, minHeight: '400px' }} className={className}>
+    <div style={{ position: 'relative', width: '100%', height, minHeight: '350px', overflow: 'hidden', borderRadius: '16px', boxSizing: 'border-box' }} className={`real-google-map-root ${className}`}>
       {/* Contenedor del Mapa Leaflet */}
-      <div ref={mapContainerRef} style={{ width: '100%', height: '100%', borderRadius: '16px' }} />
+      <div ref={mapContainerRef} style={{ width: '100%', height: '100%', borderRadius: '16px', overflow: 'hidden' }} />
 
       {/* Selector de Capas de Google Maps en la esquina superior izquierda */}
       <div style={{
         position: 'absolute',
-        top: '12px',
-        left: '12px',
+        top: '10px',
+        left: '10px',
         zIndex: 1000,
         background: 'rgba(255, 255, 255, 0.95)',
         backdropFilter: 'blur(8px)',
-        padding: '6px',
-        borderRadius: '12px',
+        padding: '4px',
+        borderRadius: '10px',
         boxShadow: '0 4px 18px rgba(33, 49, 69, 0.15)',
         border: '1px solid #E2E8F0',
         display: 'flex',
-        gap: '4px'
+        gap: '4px',
+        maxWidth: 'calc(100% - 20px)'
       }}>
         {(['GOOGLE_STREETS', 'GOOGLE_SATELLITE', 'GOOGLE_TERRAIN'] as MapTileProvider[]).map((prov) => {
           const isActive = currentProvider === prov;
@@ -283,9 +284,9 @@ export const RealGoogleMap: React.FC<RealGoogleMapProps> = ({
                 border: 'none',
                 background: isActive ? '#213145' : 'transparent',
                 color: isActive ? '#FFFFFF' : '#475569',
-                padding: '4px 10px',
-                borderRadius: '8px',
-                fontSize: '0.75rem',
+                padding: '4px 8px',
+                borderRadius: '6px',
+                fontSize: '0.72rem',
                 fontWeight: 700,
                 cursor: 'pointer',
                 transition: 'all 0.15s ease'
@@ -300,14 +301,14 @@ export const RealGoogleMap: React.FC<RealGoogleMapProps> = ({
       {/* Salto rápido a Sectores de Quito y Valles */}
       <div style={{
         position: 'absolute',
-        top: '12px',
-        right: '54px',
+        top: '50px',
+        left: '10px',
         zIndex: 1000,
         display: 'flex',
         gap: '4px',
         flexWrap: 'wrap',
-        maxWidth: '480px',
-        justifyContent: 'flex-end'
+        maxWidth: 'calc(100% - 20px)',
+        justifyContent: 'flex-start'
       }}>
         {['ALL', 'Cumbayá', 'Puembo', 'La Carolina', 'González Suárez', 'Tumbaco'].map((sec) => {
           const isActive = activeSector === sec;
@@ -321,7 +322,7 @@ export const RealGoogleMap: React.FC<RealGoogleMapProps> = ({
                 border: isActive ? '1px solid #FEA004' : '1px solid rgba(226, 232, 240, 0.8)',
                 background: isActive ? '#FEA004' : 'rgba(255, 255, 255, 0.92)',
                 color: isActive ? '#FFFFFF' : '#213145',
-                padding: '4px 9px',
+                padding: '3px 8px',
                 borderRadius: '999px',
                 fontSize: '0.72rem',
                 fontWeight: 700,

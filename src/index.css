@@ -608,6 +608,19 @@ button {
   max-width: 1380px;
   margin: 0 auto;
   padding: 0 2rem 5rem;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .main-wrapper {
+    padding: 0 1rem 3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-wrapper {
+    padding: 0 0.5rem 2rem;
+  }
 }
 
 .section-header {

@@ -42,7 +42,63 @@ export const SplitViewMap: React.FC<SplitViewMapProps> = ({
   };
 
   return (
-    <div className="split-view-container" style={{ maxWidth: '1440px', margin: '0 auto', padding: '1rem 1.5rem' }}>
+    <div className="split-view-container" style={{ maxWidth: '1440px', margin: '0 auto', boxSizing: 'border-box', overflowX: 'hidden' }}>
+      <style>{`
+        .split-view-container {
+          padding: 0.5rem 0;
+          width: 100%;
+          box-sizing: border-box;
+        }
+        .split-view-layout-grid {
+          display: grid;
+          grid-template-columns: minmax(320px, 460px) 1fr;
+          gap: 1.5rem;
+          min-height: calc(100vh - 220px);
+          align-items: stretch;
+        }
+        .split-view-cards-column {
+          overflow-y: auto;
+          max-height: calc(100vh - 220px);
+          padding-right: 0.5rem;
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+        .split-view-map-column {
+          position: sticky;
+          top: 90px;
+          height: calc(100vh - 220px);
+          border-radius: 18px;
+          overflow: hidden;
+          box-shadow: 0 8px 30px rgba(33, 49, 69, 0.12);
+          border: 1px solid #E2E8F0;
+          background: #E2E8F0;
+        }
+        @media (max-width: 900px) {
+          .split-view-container {
+            padding: 0.75rem 0.5rem !important;
+          }
+          .split-view-layout-grid {
+            display: flex !important;
+            flex-direction: column-reverse !important;
+            gap: 1rem !important;
+            min-height: auto !important;
+          }
+          .split-view-map-column {
+            position: relative !important;
+            top: 0 !important;
+            height: 380px !important;
+            width: 100% !important;
+            border-radius: 14px !important;
+          }
+          .split-view-cards-column {
+            overflow-y: visible !important;
+            max-height: none !important;
+            padding-right: 0 !important;
+            width: 100% !important;
+          }
+        }
+      `}</style>
       {/* Top Header Bar */}
       <div style={{
         display: 'flex',
@@ -70,7 +126,7 @@ export const SplitViewMap: React.FC<SplitViewMapProps> = ({
           </div>
           <h1 style={{
             margin: '0.2rem 0 0 0',
-            fontSize: '1.65rem',
+            fontSize: '1.45rem',
             fontWeight: 800,
             color: '#213145',
             letterSpacing: '-0.02em'
@@ -107,23 +163,10 @@ export const SplitViewMap: React.FC<SplitViewMapProps> = ({
         </div>
       </div>
 
-      {/* Split View 2-Column Grid */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'minmax(340px, 480px) 1fr',
-        gap: '1.5rem',
-        minHeight: 'calc(100vh - 220px)',
-        alignItems: 'stretch'
-      }}>
-        {/* Left Column: Scrollable Property Cards */}
-        <div style={{
-          overflowY: 'auto',
-          maxHeight: 'calc(100vh - 220px)',
-          paddingRight: '0.5rem',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '1rem'
-        }}>
+      {/* Split View Responsive Layout */}
+      <div className="split-view-layout-grid">
+        {/* Column 1: Property Cards */}
+        <div className="split-view-cards-column">
           <div style={{
             fontSize: '0.82rem',
             fontWeight: 700,
@@ -131,7 +174,9 @@ export const SplitViewMap: React.FC<SplitViewMapProps> = ({
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            padding: '0.25rem 0'
+            padding: '0.25rem 0',
+            flexWrap: 'wrap',
+            gap: '0.35rem'
           }}>
             <span>MOSTRANDO {properties.length} INMUEBLES</span>
             <span style={{ fontSize: '0.75rem', color: '#059669', background: '#ECFDF5', padding: '2px 8px', borderRadius: '999px', fontWeight: 700 }}>
@@ -179,17 +224,8 @@ export const SplitViewMap: React.FC<SplitViewMapProps> = ({
           )}
         </div>
 
-        {/* Right Column: Real Google Maps Interactive Canvas */}
-        <div style={{
-          position: 'sticky',
-          top: '90px',
-          height: 'calc(100vh - 220px)',
-          borderRadius: '18px',
-          overflow: 'hidden',
-          boxShadow: '0 8px 30px rgba(33, 49, 69, 0.12)',
-          border: '1px solid #E2E8F0',
-          background: '#E2E8F0'
-        }}>
+        {/* Column 2: Real Google Maps Interactive Canvas */}
+        <div className="split-view-map-column">
           <RealGoogleMap
             properties={properties}
             selectedProperty={selectedMapProperty}
