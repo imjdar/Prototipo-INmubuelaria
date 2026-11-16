@@ -9,10 +9,15 @@ import {
   Building,
   CheckCircle2,
   ChevronRight,
-  ChevronLeft
+  ChevronLeft,
+  Trash2,
+  Film,
+  Loader2,
+  Settings
 } from 'lucide-react';
 import { User, UserSubscription } from '../types/auth';
 import { Sector, PropertyType } from '../types/property';
+import { cloudinaryService } from '../services/cloudinaryService';
 
 interface PublishPropertyModalProps {
   isOpen: boolean;
@@ -65,6 +70,61 @@ export const PublishPropertyModal: React.FC<PublishPropertyModalProps> = ({
   const [isValleyClimate, setIsValleyClimate] = useState<boolean>(true);
   const [biessEligible, setBiessEligible] = useState<boolean>(true);
   const [description, setDescription] = useState('');
+
+  // Real Cloudinary / Supabase Media Upload States
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [verticalReelUrl, setVerticalReelUrl] = useState<string>('');
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [uploadStatus, setUploadStatus] = useState<string>('');
+  const [showMediaConfig, setShowMediaConfig] = useState<boolean>(false);
+  const [customCloudName, setCustomCloudName] = useState<string>(cloudinaryService.getConfig().cloudName);
+  const [customPreset, setCustomPreset] = useState<string>(cloudinaryService.getConfig().uploadPreset);
+  const [mediaSaved, setMediaSaved] = useState<boolean>(false);
+
+  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploading(true);
+    setUploadProgress(10);
+    setUploadStatus('Conectando con almacenamiento Cloudinary...');
+
+    try {
+      const fileList = Array.from(files);
+      const newUrls: string[] = [];
+
+      for (let i = 0; i < fileList.length; i++) {
+        const file = fileList[i];
+        if (file.type.startsWith('video/')) {
+          setUploadStatus(`Subiendo y procesando video vertical 9:16 (${file.name})...`);
+          const res = await cloudinaryService.uploadVideo(file, (pct) => {
+            setUploadProgress(Math.round(((i + pct / 100) / fileList.length) * 100));
+          });
+          setVerticalReelUrl(res.secureUrl);
+        } else {
+          setUploadStatus(`Optimizando y subiendo fotografía ${i + 1} de ${fileList.length}...`);
+          const res = await cloudinaryService.uploadImage(file, (pct) => {
+            setUploadProgress(Math.round(((i + pct / 100) / fileList.length) * 100));
+          });
+          newUrls.push(res.secureUrl);
+        }
+      }
+
+      setUploadedImages((prev) => [...prev, ...newUrls]);
+      setUploadProgress(100);
+      setUploadStatus('¡Subida completada con éxito en la nube!');
+      setTimeout(() => setUploadStatus(''), 3000);
+    } catch (err: any) {
+      setUploadStatus('Error al subir. Se utilizarán URLs de respaldo.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleRemoveImage = (indexToRemove: number) => {
+    setUploadedImages((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+  };
 
   // Sync initialData changes when opened
   React.useEffect(() => {
@@ -192,11 +252,14 @@ export const PublishPropertyModal: React.FC<PublishPropertyModalProps> = ({
           hoaFee: 150,
           elevation: sector === 'Cumbayá' ? 2200 : sector === 'Puembo' ? 2150 : 2850,
           temperature: sector === 'Cumbayá' || sector === 'Puembo' ? '22°C Templado' : '17°C Andino',
-          image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
-          subPhotos: [
-            'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80',
-            'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=80'
-          ],
+          image: uploadedImages[0] || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+          subPhotos: uploadedImages.length > 1
+            ? uploadedImages.slice(1)
+            : [
+                'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80',
+                'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=80'
+              ],
+          reelUrl: verticalReelUrl || undefined,
           features: {
             hasGenerator,
             hasMetro,
@@ -510,36 +573,213 @@ export const PublishPropertyModal: React.FC<PublishPropertyModalProps> = ({
           </div>
         )}
 
-        {/* Step 3: Media Upload with R2 and Sharp */}
+        {/* Step 3: Media Upload with Cloudinary & R2 */}
         {currentStep === 3 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{
-              border: '2px dashed #D4AF37',
-              borderRadius: '12px',
-              padding: '2rem',
-              textAlign: 'center',
-              background: '#FDFBF7'
-            }}>
-              <Upload size={36} color="#D4AF37" style={{ margin: '0 auto 0.75rem auto' }} />
-              <h4 style={{ margin: '0 0 0.35rem 0', fontSize: '1rem', color: '#171A1C' }}>
-                Arrastra hasta 40 Fotografías y Videos 9:16
-              </h4>
-              <p style={{ margin: 0, fontSize: '0.8rem', color: '#6B7280' }}>
-                Almacenamiento directo en <strong>Cloudflare R2</strong> con compresión automática <strong>WebP</strong> en 3 resoluciones.
-              </p>
+            <div 
+              style={{
+                border: '2px dashed #FEA004',
+                borderRadius: '12px',
+                padding: '2rem 1.5rem',
+                textAlign: 'center',
+                background: '#FFFBF5',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+              onClick={() => document.getElementById('media-file-input')?.click()}
+            >
+              <input
+                id="media-file-input"
+                type="file"
+                multiple
+                accept="image/jpeg,image/png,image/webp,video/mp4"
+                onChange={handleMediaUpload}
+                style={{ display: 'none' }}
+              />
+
+              {isUploading ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
+                  <Loader2 size={36} color="#FEA004" className="animate-spin" style={{ animation: 'spin 1s linear infinite' }} />
+                  <h4 style={{ margin: 0, fontSize: '1rem', color: '#171A1C' }}>
+                    {uploadStatus || 'Subiendo archivos a la nube...'}
+                  </h4>
+                  <div style={{ width: '80%', maxWidth: '300px', height: '8px', background: '#E2E8F0', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ width: `${uploadProgress}%`, height: '100%', background: '#FEA004', transition: 'width 0.2s ease' }} />
+                  </div>
+                  <span style={{ fontSize: '0.75rem', color: '#64748B' }}>{uploadProgress}% completado</span>
+                </div>
+              ) : (
+                <>
+                  <Upload size={36} color="#FEA004" style={{ margin: '0 auto 0.75rem auto' }} />
+                  <h4 style={{ margin: '0 0 0.35rem 0', fontSize: '1rem', color: '#171A1C' }}>
+                    Haz clic aquí o arrastra Fotografías y Videos 9:16
+                  </h4>
+                  <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.8rem', color: '#6B7280' }}>
+                    Almacenamiento directo en <strong>Cloudinary</strong> y <strong>S3</strong> con compresión automática <strong>WebP</strong>.
+                  </p>
+                  <button
+                    type="button"
+                    style={{
+                      padding: '0.5rem 1rem',
+                      background: '#FEA004',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(254, 160, 4, 0.25)'
+                    }}
+                  >
+                    Seleccionar Fotos desde tu Dispositivo
+                  </button>
+                </>
+              )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
-              <div style={{ height: '90px', borderRadius: '8px', background: '#E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', color: '#6B7280', overflow: 'hidden' }}>
-                <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=300&q=80" alt="demo 1" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            {/* Uploaded Gallery Grid */}
+            {uploadedImages.length > 0 && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1E293B' }}>
+                    Fotos cargadas en Cloudinary ({uploadedImages.length})
+                  </span>
+                  {verticalReelUrl && (
+                    <span style={{ fontSize: '0.75rem', color: '#16A34A', display: 'flex', alignItems: 'center', gap: '0.25rem', fontWeight: 600 }}>
+                      <Film size={13} /> Video 9:16 Listo
+                    </span>
+                  )}
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '0.6rem' }}>
+                  {uploadedImages.map((url, idx) => (
+                    <div key={idx} style={{ position: 'relative', height: '85px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #CBD5E1' }}>
+                      <img src={url} alt={`Upload ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <span style={{
+                        position: 'absolute',
+                        bottom: '2px',
+                        left: '2px',
+                        background: 'rgba(0,0,0,0.6)',
+                        color: '#FFF',
+                        fontSize: '9px',
+                        padding: '1px 4px',
+                        borderRadius: '3px'
+                      }}>
+                        {idx === 0 ? 'Portada' : `#${idx + 1}`}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleRemoveImage(idx); }}
+                        style={{
+                          position: 'absolute',
+                          top: '2px',
+                          right: '2px',
+                          background: 'rgba(239, 68, 68, 0.85)',
+                          color: '#FFF',
+                          border: 'none',
+                          borderRadius: '50%',
+                          width: '20px',
+                          height: '20px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer'
+                        }}
+                        title="Eliminar foto"
+                      >
+                        <Trash2 size={11} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div style={{ height: '90px', borderRadius: '8px', background: '#E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', color: '#6B7280', overflow: 'hidden' }}>
-                <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=300&q=80" alt="demo 2" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            )}
+
+            {/* Default Placeholder Preview if none uploaded yet */}
+            {uploadedImages.length === 0 && !isUploading && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
+                <div style={{ height: '85px', borderRadius: '8px', background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', color: '#64748B', overflow: 'hidden', border: '1px solid #E2E8F0' }}>
+                  <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=300&q=80" alt="demo 1" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+                <div style={{ height: '85px', borderRadius: '8px', background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', color: '#64748B', overflow: 'hidden', border: '1px solid #E2E8F0' }}>
+                  <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=300&q=80" alt="demo 2" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+                <div style={{ height: '85px', borderRadius: '8px', border: '1px dashed #CBD5E1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', color: '#94A3B8', textAlign: 'center', padding: '0.5rem' }}>
+                  Esperando fotos del inmueble...
+                </div>
               </div>
-              <div style={{ height: '90px', borderRadius: '8px', border: '1px dashed #D1D5DB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', color: '#9CA3AF' }}>
-                + 13 fotos listas
-              </div>
+            )}
+
+            {/* Cloudinary Provider Config Toggle */}
+            <div style={{ textAlign: 'center', marginTop: '0.25rem' }}>
+              <button
+                type="button"
+                onClick={() => setShowMediaConfig(!showMediaConfig)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#64748B',
+                  fontSize: '0.75rem',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.3rem',
+                  textDecoration: 'underline'
+                }}
+              >
+                <Settings size={12} />
+                <span>{showMediaConfig ? 'Ocultar ajustes de Cloudinary' : '⚙️ Configurar Cuenta de Cloudinary'}</span>
+              </button>
             </div>
+
+            {showMediaConfig && (
+              <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '0.75rem', fontSize: '0.78rem' }}>
+                <div style={{ fontWeight: 700, color: '#1E293B', marginBottom: '0.4rem' }}>
+                  Credenciales de Cloudinary (Plan Gratuito)
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                  <div>
+                    <label style={{ display: 'block', color: '#475569', fontWeight: 600, marginBottom: '0.15rem' }}>Cloud Name:</label>
+                    <input
+                      type="text"
+                      value={customCloudName}
+                      onChange={(e) => setCustomCloudName(e.target.value)}
+                      placeholder="ej. mi-inmobiliaria"
+                      style={{ width: '100%', padding: '0.35rem', border: '1px solid #CBD5E1', borderRadius: '4px', fontSize: '0.75rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', color: '#475569', fontWeight: 600, marginBottom: '0.15rem' }}>Upload Preset (Unsigned):</label>
+                    <input
+                      type="text"
+                      value={customPreset}
+                      onChange={(e) => setCustomPreset(e.target.value)}
+                      placeholder="ej. premier_preset"
+                      style={{ width: '100%', padding: '0.35rem', border: '1px solid #CBD5E1', borderRadius: '4px', fontSize: '0.75rem' }}
+                    />
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    cloudinaryService.saveConfig(customCloudName, customPreset);
+                    setMediaSaved(true);
+                    setTimeout(() => setMediaSaved(false), 2000);
+                  }}
+                  style={{
+                    padding: '0.35rem 0.75rem',
+                    background: mediaSaved ? '#16A34A' : '#0F172A',
+                    color: '#FFF',
+                    border: 'none',
+                    borderRadius: '4px',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  {mediaSaved ? '✔ Guardado' : 'Guardar Configuración'}
+                </button>
+              </div>
+            )}
           </div>
         )}
 

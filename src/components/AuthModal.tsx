@@ -9,10 +9,14 @@ import {
   Sparkles, 
   Eye, 
   EyeOff, 
-  KeyRound
+  KeyRound,
+  Settings,
+  Check
 } from 'lucide-react';
 import { UserRole } from '../types/auth';
 import { authService } from '../services/authService';
+import { googleAuthService } from '../services/googleAuthService';
+import { supabaseService } from '../services/supabaseClient';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -30,6 +34,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Cloud Providers Config state
+  const [showConfig, setShowConfig] = useState(false);
+  const [customGoogleClientId, setCustomGoogleClientId] = useState(googleAuthService.getClientId());
+  const [customSupabaseUrl, setCustomSupabaseUrl] = useState(supabaseService.getConfig().url);
+  const [customSupabaseKey, setCustomSupabaseKey] = useState(supabaseService.getConfig().anonKey);
+  const [configSaved, setConfigSaved] = useState(false);
 
   // Form states
   const [email, setEmail] = useState('');
@@ -59,6 +70,32 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setIsLoading(true);
     setErrorMessage(null);
     try {
+      if (provider === 'google') {
+        // 1. Supabase OAuth si está configurado
+        if (supabaseService.isConfigured()) {
+          const { error } = await supabaseService.signInWithGoogle();
+          if (error) throw error;
+          return;
+        }
+
+        // 2. Google Identity Services (GIS)
+        const clientId = googleAuthService.getClientId();
+        if (clientId && window.google?.accounts?.id) {
+          googleAuthService.promptLogin((payload) => {
+            const { user } = authService.loginWithGoogleProfile({
+              id: payload.sub,
+              email: payload.email,
+              fullName: payload.name,
+              avatarUrl: payload.picture
+            });
+            onLoginSuccess(user);
+            onClose();
+          });
+          setIsLoading(false);
+          return;
+        }
+      }
+
       const { user } = await authService.socialLogin(provider);
       onLoginSuccess(user);
       onClose();
@@ -341,6 +378,111 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <span>Facebook</span>
             </button>
           </div>
+
+          {/* Cloud Auth Connectors (Google Identity Services & Supabase Auth) */}
+          <div style={{ marginTop: '0.35rem', textAlign: 'center' }}>
+            <button
+              type="button"
+              onClick={() => setShowConfig(!showConfig)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#64748B',
+                fontSize: '0.75rem',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.3rem',
+                textDecoration: 'underline'
+              }}
+            >
+              <Settings size={12} />
+              <span>{showConfig ? 'Ocultar conectores en la nube' : '⚙️ Conectar Google Cloud / Supabase Real'}</span>
+            </button>
+          </div>
+
+          {showConfig && (
+            <div style={{
+              background: '#F8FAFC',
+              border: '1px solid #E2E8F0',
+              borderRadius: '8px',
+              padding: '0.75rem',
+              marginTop: '0.5rem',
+              textAlign: 'left',
+              fontSize: '0.78rem'
+            }}>
+              <div style={{ fontWeight: 700, color: '#1E293B', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                <ShieldCheck size={14} color="#16A34A" />
+                <span>Proveedores Gratuitos de Producción</span>
+              </div>
+
+              <div style={{ marginBottom: '0.5rem' }}>
+                <label style={{ display: 'block', color: '#475569', fontWeight: 600, marginBottom: '0.15rem' }}>
+                  Google OAuth Client ID (GIS):
+                </label>
+                <input
+                  type="text"
+                  placeholder="ej. 12345678-abc.apps.googleusercontent.com"
+                  value={customGoogleClientId}
+                  onChange={(e) => setCustomGoogleClientId(e.target.value)}
+                  style={{ width: '100%', padding: '0.4rem', border: '1px solid #CBD5E1', borderRadius: '4px', fontSize: '0.75rem' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '0.5rem' }}>
+                <label style={{ display: 'block', color: '#475569', fontWeight: 600, marginBottom: '0.15rem' }}>
+                  Supabase Project URL:
+                </label>
+                <input
+                  type="text"
+                  placeholder="https://xyzcompany.supabase.co"
+                  value={customSupabaseUrl}
+                  onChange={(e) => setCustomSupabaseUrl(e.target.value)}
+                  style={{ width: '100%', padding: '0.4rem', border: '1px solid #CBD5E1', borderRadius: '4px', fontSize: '0.75rem' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '0.5rem' }}>
+                <label style={{ display: 'block', color: '#475569', fontWeight: 600, marginBottom: '0.15rem' }}>
+                  Supabase Anon Key:
+                </label>
+                <input
+                  type="password"
+                  placeholder="eyJhbGciOiJIUzI1NiIsIn..."
+                  value={customSupabaseKey}
+                  onChange={(e) => setCustomSupabaseKey(e.target.value)}
+                  style={{ width: '100%', padding: '0.4rem', border: '1px solid #CBD5E1', borderRadius: '4px', fontSize: '0.75rem' }}
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (customGoogleClientId) googleAuthService.setClientId(customGoogleClientId);
+                  if (customSupabaseUrl && customSupabaseKey) supabaseService.saveConfig(customSupabaseUrl, customSupabaseKey);
+                  setConfigSaved(true);
+                  setTimeout(() => setConfigSaved(false), 2500);
+                }}
+                style={{
+                  width: '100%',
+                  padding: '0.45rem',
+                  background: configSaved ? '#16A34A' : '#0F172A',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.3rem'
+                }}
+              >
+                {configSaved ? <Check size={14} /> : <Settings size={14} />}
+                <span>{configSaved ? '¡Guardado y Activo!' : 'Guardar y Activar Proveedores'}</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Divider */}
