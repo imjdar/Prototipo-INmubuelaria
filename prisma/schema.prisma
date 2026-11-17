@@ -1,0 +1,171 @@
+// ==============================================================================
+// PROPIEDADES PREMIER - PRISMA ORM SCHEMA (EF Core Equivalent in TypeScript)
+// Arquitectura Code-First Fuertemente Tipada para PostgreSQL 16 / Supabase
+// ==============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------------------------------------------------------------------
+// 1. Entidad: Usuario & Control de Acceso RBAC (Entity User)
+// ------------------------------------------------------------------------------
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String   @map("password_hash")
+  fullName      String   @map("full_name")
+  phone         String?
+  role          String   @default("BUYER") // BUYER, AGENT, SUPER_ADMIN
+  avatarUrl     String?  @map("avatar_url")
+  isVerified    Boolean  @default(false) @map("is_verified")
+  companyName   String?  @map("company_name")
+  licenseNumber String?  @map("license_number")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  subscriptions UserSubscription[]
+  inquiries     Inquiry[]
+  properties    Property[]
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+// ------------------------------------------------------------------------------
+// 2. Entidad: Planes Oficiales de Membresía SRI (Entity MembershipPlan)
+// ------------------------------------------------------------------------------
+model MembershipPlan {
+  id                     String   @id @default(uuid())
+  code                   String   @unique // FREE, PRO_AGENT, VIP_INMOBILIARIA
+  name                   String
+  monthlyPriceUsd        Decimal  @default(0.00) @map("monthly_price_usd") @db.Decimal(10, 2)
+  annualPriceUsd         Decimal  @default(0.00) @map("annual_price_usd") @db.Decimal(10, 2)
+  maxActiveListings      Int      @default(1) @map("max_active_listings")
+  featuredTokens         Int      @default(0) @map("featured_tokens")
+  hasVideoReels          Boolean  @default(false) @map("has_video_reels")
+  hasAiGuardianPriority  Boolean  @default(false) @map("has_ai_guardian_priority")
+  featuresJson           Json     @default("[]") @map("features_json")
+  isActive               Boolean  @default(true) @map("is_active")
+  createdAt              DateTime @default(now()) @map("created_at")
+
+  subscriptions UserSubscription[]
+
+  @@map("membership_plans")
+}
+
+// ------------------------------------------------------------------------------
+// 3. Entidad: Suscripciones de Usuarios (Entity UserSubscription)
+// ------------------------------------------------------------------------------
+model UserSubscription {
+  id                 String   @id @default(uuid())
+  userId             String   @map("user_id")
+  planId             String   @map("plan_id")
+  status             String   @default("ACTIVE") // ACTIVE, EXPIRED, CANCELLED
+  startedAt          DateTime @default(now()) @map("started_at")
+  expiresAt          DateTime @map("expires_at")
+  sriInvoiceNumber   String?  @map("sri_invoice_number")
+  sriAccessKey       String?  @map("sri_access_key")
+  billingDetailsJson Json     @default("{}") @map("billing_details_json")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  user User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan MembershipPlan @relation(fields: [planId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@index([status])
+  @@map("user_subscriptions")
+}
+
+// ------------------------------------------------------------------------------
+// 4. Entidad: Catálogo Inmobiliario Notarial de Quito (Entity Property)
+// ------------------------------------------------------------------------------
+model Property {
+  id               String   @id
+  title            String
+  sector           String   // Cumbayá, Tumbaco, Puembo, González Suárez, La Carolina, Nayón, etc.
+  microzone        String?
+  type             String   // Casa, Penthouse, Suite, Terreno
+  operationType    String   @default("VENTA") @map("operation_type") // VENTA, RENTA
+  price            Decimal  @db.Decimal(12, 2)
+  areaBuild        Decimal  @map("area_build") @db.Decimal(10, 2)
+  areaLot          Decimal? @map("area_lot") @db.Decimal(10, 2)
+  bedrooms         Int      @default(1)
+  bathrooms        Decimal  @default(1) @db.Decimal(3, 1)
+  parking          Int      @default(1)
+  hoaFee           Decimal? @default(0.00) @map("hoa_fee") @db.Decimal(8, 2)
+  elevationMeters  Int?     @default(2800) @map("elevation_meters")
+  climateCategory  String?  @default("Andino") @map("climate_category")
+  imageUrl         String   @map("image_url")
+  subPhotosJson    Json     @default("[]") @map("sub_photos_json")
+  reelUrl          String?  @map("reel_url")
+
+  // Quito 2026 Features & Security
+  hasGenerator     Boolean  @default(false) @map("has_generator")
+  hasMetro         Boolean  @default(false) @map("has_metro")
+  hasDoubleGate    Boolean  @default(false) @map("has_double_gate")
+  isValleyClimate  Boolean  @default(false) @map("is_valley_climate")
+  biessEligible    Boolean  @default(false) @map("biess_eligible")
+  hasMatterport    Boolean  @default(false) @map("has_matterport")
+
+  // Notarial Saneamiento
+  legalStatus      String   @default("Certificado de Gravámenes al día") @map("legal_status")
+  description      String   @db.Text
+
+  // Geo-referenciación (Lat/Lng)
+  latitude         Decimal  @db.Decimal(10, 8)
+  longitude        Decimal  @db.Decimal(11, 8)
+
+  // Logistics & Agent Data
+  logisticsJson    Json     @default("{}") @map("logistics_json")
+  agentId          String?  @map("agent_id")
+  agentName        String   @map("agent_name")
+  agentPhone       String?  @map("agent_phone")
+  agentRole        String?  @map("agent_role")
+
+  isFeatured       Boolean  @default(false) @map("is_featured")
+  isVerifiedNotary Boolean  @default(true) @map("is_verified_notary")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  agent            User?    @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  inquiries        Inquiry[]
+
+  @@index([sector])
+  @@index([type])
+  @@index([price])
+  @@index([hasGenerator])
+  @@map("properties")
+}
+
+// ------------------------------------------------------------------------------
+// 5. Entidad: Agendamientos Notariales & Contactos (Entity Inquiry)
+// ------------------------------------------------------------------------------
+model Inquiry {
+  id              String   @id @default(uuid())
+  propertyId      String   @map("property_id")
+  userId          String?  @map("user_id")
+  clientName      String   @map("client_name")
+  clientEmail     String   @map("client_email")
+  clientPhone     String   @map("client_phone")
+  appointmentDate DateTime? @map("appointment_date")
+  timeSlot        String?  @map("time_slot")
+  buyerType       String?  @default("CONTADO") @map("buyer_type") // BIESS, PRIVADA, CONTADO
+  gatePassId      String?  @map("gate_pass_id")
+  status          String   @default("PENDIENTE") // PENDIENTE, CONFIRMADO, REALIZADO
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  user     User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([propertyId])
+  @@index([status])
+  @@map("inquiries")
+}

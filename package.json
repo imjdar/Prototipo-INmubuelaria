@@ -13,9 +13,13 @@
     "test:qa": "tsx tests/run-all-qa.ts",
     "test:real": "tsx tests/real-world-e2e-and-stress.ts",
     "test:docker": "tsx tests/docker-live-verification.ts",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:seed": "tsx server/src/database/prismaSeed.ts",
     "report:pdf": "node scripts/generate-pdf-report.cjs"
   },
   "dependencies": {
+    "@prisma/client": "^6.4.1",
     "@supabase/supabase-js": "^2.119.0",
     "@types/leaflet": "^1.9.22",
     "bcryptjs": "^3.0.3",
@@ -42,6 +46,7 @@
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
     "autocannon": "^9.0.0",
+    "prisma": "^6.4.1",
     "puppeteer": "^25.17.0",
     "typescript": "^5.7.2",
     "vite": "^6.0.7"
