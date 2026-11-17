@@ -277,7 +277,7 @@ export const BlogView: React.FC<BlogViewProps> = ({
                 }}
               >
                 <Download size={15} />
-                <span style={{ overflowWrap: 'anywhere', wordBreak: 'break-word', fontSize: '0.8rem' }}>Descargar {tpl.name}</span>
+                <span style={{ overflowWrap: 'anywhere', wordBreak: 'break-word', fontSize: '0.8rem' }}>Descargar {tpl.title}</span>
               </button>
             </div>
           ))}

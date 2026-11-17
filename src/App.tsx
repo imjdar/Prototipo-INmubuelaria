@@ -29,6 +29,7 @@ import { WhatsAppModal } from './components/WhatsAppModal';
 import { ScheduleModal } from './components/ScheduleModal';
 import { ToastContainer } from './components/ToastContainer';
 import { Footer } from './components/Footer';
+import { MobileBottomNav } from './components/MobileBottomNav';
 
 // Sprint 1 Auth & Subscription Components
 import { AuthModal } from './components/AuthModal';
@@ -1022,6 +1023,20 @@ export const App: React.FC = () => {
           if (view === 'split') setViewMode('map');
           if (view === 'catalog') setViewMode('grid');
         }}
+      />
+
+      {/* Ergonomic Mobile Bottom Navigation Bar (Steven Hoober Thumb Zone) */}
+      <MobileBottomNav
+        activeView={activeView}
+        savedCount={savedPropertyIds.length}
+        onNavigate={(view) => {
+          setActiveView(view);
+          if (view === 'split') setViewMode('map');
+          if (view === 'catalog' || view === 'comprar') setViewMode('grid');
+        }}
+        onOpenFavorites={() => setIsFavoritesDrawerOpen(true)}
+        onOpenValuator={() => setIsValuatorOpen(true)}
+        onOpenPublish={() => setIsPublishModalOpen(true)}
       />
     </div>
   );

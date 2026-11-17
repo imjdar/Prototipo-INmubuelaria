@@ -170,7 +170,7 @@ Canon Renta Estimado: $${valuation.estimatedMonthlyRent.toLocaleString()}/mes | 
               <span>1. Características del Inmueble</span>
             </h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+            <div className="valuator-inputs-pair">
               {/* Sector */}
               <div>
                 <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '0.35rem' }}>
