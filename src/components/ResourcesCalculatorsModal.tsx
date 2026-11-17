@@ -194,7 +194,7 @@ export const ResourcesCalculatorsModal: React.FC<ResourcesCalculatorsModalProps>
           <div>
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
               gap: '1.5rem',
               marginBottom: '2rem'
             }}>
@@ -383,7 +383,7 @@ export const ResourcesCalculatorsModal: React.FC<ResourcesCalculatorsModalProps>
 
         {/* TAB 2: BLOG INMOBILIARIO */}
         {activeTab === 'blog' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))', gap: '1.25rem' }}>
             {resourcesService.getBlogPosts().map((post) => (
               <article
                 key={post.id}

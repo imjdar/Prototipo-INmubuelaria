@@ -135,7 +135,7 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
       </div>
 
       {/* Services Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
         {servicesList.map((svc) => {
           const Icon = svc.icon;
           const isSelected = selectedService === svc.id;
@@ -216,12 +216,12 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
       <div style={{
         background: '#FFFFFF',
         borderRadius: '16px',
-        padding: '2.5rem',
+        padding: 'clamp(1.25rem, 4vw, 2.5rem)',
         border: '1px solid #E2E8F0',
         boxShadow: '0 4px 20px rgba(0,0,0,0.04)',
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-        gap: '2.5rem',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+        gap: 'clamp(1.25rem, 3vw, 2.5rem)',
         alignItems: 'center'
       }}>
         <div>

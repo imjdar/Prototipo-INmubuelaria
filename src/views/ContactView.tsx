@@ -106,12 +106,12 @@ export const ContactView: React.FC<ContactViewProps> = ({ onOpenWhatsApp }) => {
       </div>
 
       {/* Main Grid: Form & Physical Offices */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '2rem', marginBottom: '3.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '2rem', marginBottom: '3.5rem' }}>
         {/* Contact Form */}
         <div style={{
           background: '#FFFFFF',
           borderRadius: '16px',
-          padding: '2rem',
+          padding: 'clamp(1.25rem, 4vw, 2rem)',
           border: '1px solid #E2E8F0',
           boxShadow: '0 4px 20px rgba(0,0,0,0.04)'
         }}>

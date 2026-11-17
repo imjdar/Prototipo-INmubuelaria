@@ -146,7 +146,7 @@ export const BlogView: React.FC<BlogViewProps> = ({
       </div>
 
       {/* Articles Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '1.75rem', marginBottom: '3.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1.75rem', marginBottom: '3.5rem' }}>
         {filteredPosts.map((post) => (
           <article
             key={post.id}
@@ -230,7 +230,7 @@ export const BlogView: React.FC<BlogViewProps> = ({
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1.5rem' }}>
           {allTemplates.map((tpl) => (
             <div
               key={tpl.id}
@@ -277,7 +277,7 @@ export const BlogView: React.FC<BlogViewProps> = ({
                 }}
               >
                 <Download size={15} />
-                <span>Descargar {tpl.downloadFileName}</span>
+                <span style={{ overflowWrap: 'anywhere', wordBreak: 'break-word', fontSize: '0.8rem' }}>Descargar {tpl.name}</span>
               </button>
             </div>
           ))}
@@ -298,16 +298,16 @@ export const BlogView: React.FC<BlogViewProps> = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '1.5rem'
+          padding: 'clamp(0.5rem, 2vw, 1.5rem)'
         }}>
           <div style={{
             background: '#FFFFFF',
             borderRadius: '16px',
             maxWidth: '800px',
             width: '100%',
-            maxHeight: '90vh',
+            maxHeight: '92dvh',
             overflowY: 'auto',
-            padding: '2.5rem',
+            padding: 'clamp(1.25rem, 4vw, 2.5rem)',
             position: 'relative',
             boxShadow: '0 20px 50px rgba(0,0,0,0.3)'
           }}>

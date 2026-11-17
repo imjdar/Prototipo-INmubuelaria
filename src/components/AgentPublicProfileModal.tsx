@@ -126,7 +126,7 @@ export const AgentPublicProfileModal: React.FC<AgentPublicProfileModalProps> = (
         <div style={{
           background: 'linear-gradient(135deg, #213145 0%, #152232 100%)',
           color: '#FFFFFF',
-          padding: '2.5rem 2.5rem 2rem 2.5rem',
+          padding: 'clamp(1.25rem, 4vw, 2.5rem)',
           borderTopLeftRadius: '24px',
           borderTopRightRadius: '24px',
           position: 'relative'
@@ -158,7 +158,7 @@ export const AgentPublicProfileModal: React.FC<AgentPublicProfileModalProps> = (
               </div>
             </div>
 
-            <div style={{ flex: 1, minWidth: '260px' }}>
+            <div style={{ flex: 1, minWidth: 'min(100%, 240px)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
                 <span style={{
                   background: 'rgba(254, 160, 4, 0.15)',
@@ -250,9 +250,9 @@ export const AgentPublicProfileModal: React.FC<AgentPublicProfileModalProps> = (
         {/* Métricas de Desempeño */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 120px), 1fr))',
           gap: '1rem',
-          padding: '1.25rem 2.5rem',
+          padding: '1.25rem clamp(1rem, 3vw, 2.5rem)',
           background: '#F8FAFC',
           borderBottom: '1px solid #E2E8F0'
         }}>

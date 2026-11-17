@@ -149,7 +149,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
       </div>
 
       {/* Projects Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '1.75rem', marginBottom: '3rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '1.75rem', marginBottom: '3rem' }}>
         {projectList.map((project) => {
           const details = project.projectDetails || {
             developerName: 'Premier Constructores',
@@ -245,7 +245,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
                 </div>
 
                 {/* Pricing & Financing Structure */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid #F1F5F9' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '0.75rem', marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid #F1F5F9' }}>
                   <div>
                     <span style={{ display: 'block', fontSize: '0.78rem', color: '#64748B', fontWeight: 600 }}>Precios desde:</span>
                     <strong style={{ fontSize: '1.45rem', color: '#213145', fontWeight: 800 }}>
@@ -256,7 +256,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
                     </span>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
                     <button
                       onClick={() => onContactWhatsApp(project)}
                       title="Contactar desarrollador por WhatsApp"
@@ -302,11 +302,11 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
       <div style={{
         background: '#FFFFFF',
         borderRadius: '16px',
-        padding: '2rem',
+        padding: 'clamp(1rem, 3vw, 2rem)',
         border: '1px solid #E2E8F0',
         boxShadow: '0 4px 20px rgba(0,0,0,0.04)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
           <div style={{ background: '#FFF8EE', padding: '0.6rem', borderRadius: '12px', color: '#FEA004' }}>
             <DollarSign size={24} />
           </div>
@@ -320,7 +320,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '1.5rem' }}>
           {/* Controls */}
           <div>
             <div style={{ marginBottom: '1.25rem' }}>

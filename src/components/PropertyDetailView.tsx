@@ -471,7 +471,7 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
             <p style={{ fontSize: '0.82rem', color: '#0C4A6E', margin: '0 0 1rem 0' }}>
               Comparativa del valor por m² construido contra los registros notariales y avalúos promedio de la zona:
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 120px), 1fr))', gap: '0.75rem' }}>
               <div style={{ background: '#FFFFFF', padding: '0.75rem', borderRadius: '8px', border: '1px solid #E0F2FE' }}>
                 <div style={{ fontSize: '0.7rem', color: '#64748B', textTransform: 'uppercase' }}>Este Inmueble</div>
                 <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#213145' }}>${pricePerSqm.toLocaleString()}/m²</div>
@@ -816,24 +816,7 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
       </div>
 
       {/* Competitor Value-Add: Sticky Bottom Contact Bar on Mobile */}
-      <div
-        className="mobile-sticky-contact-bar"
-        style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          backgroundColor: '#FFFFFF',
-          borderTop: '1px solid #E2E8F0',
-          padding: '0.75rem 1rem',
-          zIndex: 1000,
-          boxShadow: '0 -4px 12px rgba(0, 0, 0, 0.08)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '0.75rem'
-        }}
-      >
+      <div className="mobile-sticky-contact-bar">
         <div>
           <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#213145', lineHeight: 1.1 }}>
             {formattedPrice}

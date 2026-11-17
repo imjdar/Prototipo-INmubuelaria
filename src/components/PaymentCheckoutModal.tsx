@@ -305,7 +305,7 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
             </div>
 
             {/* Selector de Método de Pago */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', marginBottom: '1.25rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 75px), 1fr))', gap: '0.5rem', marginBottom: '1.25rem' }}>
               {[
                 { id: 'PAYPHONE', label: 'Payphone', icon: <CreditCard size={18} /> },
                 { id: 'DEUNA', label: 'Deuna! QR', icon: <QrCode size={18} /> },
@@ -370,7 +370,7 @@ export const PaymentCheckoutModal: React.FC<PaymentCheckoutModalProps> = ({
                     style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.85rem', boxSizing: 'border-box' }}
                   />
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '0.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 90px), 1fr))', gap: '0.5rem' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#475569', marginBottom: '0.2rem' }}>Titular</label>
                     <input type="text" value={cardHolder} onChange={(e) => setCardHolder(e.target.value)} style={{ width: '100%', padding: '0.55rem', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.8rem', boxSizing: 'border-box' }} />

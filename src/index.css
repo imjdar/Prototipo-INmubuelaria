@@ -1088,6 +1088,7 @@ button {
 .calc-tabs {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
   margin-bottom: 1.5rem;
   border-bottom: 1px solid var(--border-subtle);
   padding-bottom: 0.75rem;
@@ -4134,5 +4135,160 @@ html, body {
   }
   .desktop-only-icon {
     display: none !important;
+  }
+}
+
+/* ==========================================================================
+   MODERN WEB GUIDANCE: FORM FACTOR ADAPTATION & FLUID RESPONSIVE SYSTEM
+   ========================================================================== */
+
+/* 1. Global Responsive Defaults & Text Wrapping */
+body {
+  overflow-wrap: break-word;
+}
+
+img, video {
+  max-inline-size: 100%;
+  block-size: auto;
+}
+
+h1, h2, h3 {
+  text-wrap: balance;
+}
+
+:where(a, code) {
+  overflow-wrap: anywhere;
+}
+
+/* 2. Coarse Pointer (Touch Screen) Hit Targets (WCAG 2.5.5 / 2.5.8) */
+:root {
+  --target-size: 24px;
+}
+
+@media (pointer: coarse) {
+  :root {
+    --target-size: 44px;
+  }
+}
+
+:where(button, select, textarea, input:not([type="checkbox"], [type="radio"]), [role="button"], nav a) {
+  min-block-size: var(--target-size);
+}
+
+/* 3. Sticky Mobile Bottom Contact Bar */
+.mobile-sticky-contact-bar {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .mobile-sticky-contact-bar {
+    display: flex !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #FFFFFF;
+    border-top: 1px solid #E2E8F0;
+    padding: 0.75rem 1rem max(0.75rem, env(safe-area-inset-bottom, 0px));
+    z-index: 1000;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .detail-view {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+/* 4. Valuator Modal Responsive Body Grid */
+.valuator-modal-body {
+  padding: 1.5rem 1.75rem;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 1.75rem;
+}
+
+@media (max-width: 768px) {
+  .valuator-modal-body {
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
+    padding: 1rem !important;
+  }
+}
+
+/* 5. Mobile Modals & Overlays Optimization */
+@media (max-width: 768px) {
+  .modal-backdrop,
+  .modal-overlay {
+    padding: 0.5rem !important;
+  }
+
+  .modal-dialog,
+  .auth-modal-card,
+  .plans-modal-card,
+  .publish-modal-card,
+  .user-profile-modal-card,
+  .about-modal-card,
+  .resources-modal-card,
+  .agents-modal-card,
+  .contact-modal-card,
+  .checkout-modal-card,
+  .valuator-modal-card {
+    width: 100% !important;
+    max-height: 94dvh !important;
+    border-radius: 16px !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Prevent iOS Safari 16px font-size auto-zoom */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  .keyboard-shortcut-hint {
+    display: none !important;
+  }
+
+  /* Active controls bar mobile stacking */
+  .active-controls-top {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+  }
+
+  .results-badge-wrap {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .sorting-layout-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .sort-dropdown-wrap {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Card specs on mobile */
+  .card-specs {
+    grid-template-columns: repeat(auto-fit, minmax(75px, 1fr)) !important;
+    gap: 0.35rem !important;
+    padding: 0.75rem 0.5rem !important;
+  }
+
+  /* Dynamic Viewport Unit for drawers */
+  .favorites-drawer-panel,
+  .mobile-drawer-container {
+    height: 100dvh !important;
+  }
+
+  .favorites-drawer-panel .drawer-footer {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px)) !important;
   }
 }

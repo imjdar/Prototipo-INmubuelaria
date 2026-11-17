@@ -213,7 +213,7 @@ export const AgentsDirectoryModal: React.FC<AgentsDirectoryModalProps> = ({
 
         {/* Tab 1: AGENTS GRID */}
         {activeTab === 'AGENTS' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '1.25rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '1.25rem' }}>
             {agents.map((agent) => (
               <div
                 key={agent.id}
@@ -366,7 +366,7 @@ export const AgentsDirectoryModal: React.FC<AgentsDirectoryModalProps> = ({
 
         {/* Tab 2: COMPANIES & DEVELOPERS (PÁGINA 08) */}
         {activeTab === 'COMPANIES' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.25rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '1.25rem' }}>
             {companies.map((comp) => (
               <div
                 key={comp.id}

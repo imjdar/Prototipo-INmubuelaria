@@ -402,7 +402,7 @@ export const PublishPropertyModal: React.FC<PublishPropertyModalProps> = ({
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem' }}>
               <div>
                 <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '0.25rem' }}>
                   Sector Geográfico
@@ -451,7 +451,7 @@ export const PublishPropertyModal: React.FC<PublishPropertyModalProps> = ({
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.6rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '0.6rem' }}>
               <div>
                 <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '0.25rem' }}>
                   Precio ($ USD)
@@ -697,7 +697,7 @@ export const PublishPropertyModal: React.FC<PublishPropertyModalProps> = ({
 
             {/* Default Placeholder Preview if none uploaded yet */}
             {uploadedImages.length === 0 && !isUploading && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))', gap: '0.75rem' }}>
                 <div style={{ height: '85px', borderRadius: '8px', background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', color: '#64748B', overflow: 'hidden', border: '1px solid #E2E8F0' }}>
                   <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=300&q=80" alt="demo 1" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>

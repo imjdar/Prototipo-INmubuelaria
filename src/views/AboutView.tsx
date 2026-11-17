@@ -176,7 +176,7 @@ export const AboutView: React.FC<AboutViewProps> = ({
       </div>
 
       {/* Misión, Visión y Valores */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem', marginBottom: '3.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1.5rem', marginBottom: '3.5rem' }}>
         <div style={{ background: '#FFFFFF', borderRadius: '14px', padding: '2rem', border: '1px solid #E2E8F0' }}>
           <div style={{ background: '#FFF8EE', color: '#FEA004', padding: '0.6rem', borderRadius: '10px', display: 'inline-flex', marginBottom: '1rem' }}>
             <Award size={24} />
@@ -279,11 +279,11 @@ export const AboutView: React.FC<AboutViewProps> = ({
       </div>
 
       {/* Testimonials */}
-      <div style={{ background: '#F8FAFC', borderRadius: '16px', padding: '2.5rem', border: '1px solid #E2E8F0', marginBottom: '3.5rem' }}>
+      <div style={{ background: '#F8FAFC', borderRadius: '16px', padding: 'clamp(1.25rem, 4vw, 2.5rem)', border: '1px solid #E2E8F0', marginBottom: '3.5rem' }}>
         <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#213145', textAlign: 'center', margin: '0 0 2rem' }}>
           Lo que dicen nuestros clientes en Quito y Valles
         </h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '1.5rem' }}>
           {testimonials.map((t, idx) => (
             <div key={idx} style={{ background: '#FFFFFF', borderRadius: '12px', padding: '1.5rem', border: '1px solid #E2E8F0' }}>
               <div style={{ color: '#FEA004', fontSize: '1.25rem', marginBottom: '0.5rem' }}>★★★★★</div>

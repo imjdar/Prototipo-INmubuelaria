@@ -162,13 +162,7 @@ Canon Renta Estimado: $${valuation.estimatedMonthlyRent.toLocaleString()}/mes | 
         </div>
 
         {/* Modal Body */}
-        <div style={{
-          padding: '1.5rem 1.75rem',
-          overflowY: 'auto',
-          display: 'grid',
-          gridTemplateColumns: '1.1fr 1fr',
-          gap: '1.75rem'
-        }}>
+        <div className="valuator-modal-body">
           {/* Left Column: Form Controls */}
           <div>
             <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#213145', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
@@ -261,7 +255,7 @@ Canon Renta Estimado: $${valuation.estimatedMonthlyRent.toLocaleString()}/mes | 
             </div>
 
             {/* Bedrooms, Bathrooms, Parking */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', marginBottom: '1.25rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#475569', marginBottom: '0.25rem' }}>
                   Dormitorios
@@ -316,7 +310,7 @@ Canon Renta Estimado: $${valuation.estimatedMonthlyRent.toLocaleString()}/mes | 
               <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '0.35rem' }}>
                 Estado de Conservación
               </label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))', gap: '0.5rem' }}>
                 {[
                   { id: 'NUEVO', label: 'A estrenar (+8%)' },
                   { id: 'BUENO', label: 'Buen estado' },
@@ -348,7 +342,7 @@ Canon Renta Estimado: $${valuation.estimatedMonthlyRent.toLocaleString()}/mes | 
               <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '0.4rem' }}>
                 Equipamiento Crítico en Quito (+Plusvalía)
               </label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.5rem' }}>
                 <label style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -482,7 +476,7 @@ Canon Renta Estimado: $${valuation.estimatedMonthlyRent.toLocaleString()}/mes | 
               </div>
 
               {/* Key Indicators Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.25rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
                 <div style={{ background: '#FFFFFF', padding: '0.75rem', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
                   <div style={{ fontSize: '0.72rem', color: '#64748B', textTransform: 'uppercase' }}>Precio por m²</div>
                   <div style={{ fontSize: '1.15rem', fontWeight: 700, color: '#213145' }}>
@@ -556,7 +550,7 @@ Canon Renta Estimado: $${valuation.estimatedMonthlyRent.toLocaleString()}/mes | 
                 <ArrowRight size={16} />
               </button>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.5rem' }}>
                 <button
                   onClick={onBookAppraisal}
                   style={{
