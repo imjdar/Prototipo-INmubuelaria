@@ -38,8 +38,8 @@ export class SupabaseService {
 
     const env = (import.meta as unknown as { env: Record<string, string> }).env || {};
     return {
-      url: env.VITE_SUPABASE_URL || 'https://awsvnqfbyopcqtdhmmnx.supabase.co',
-      anonKey: env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3c3ZucWZieW9wY3F0ZGhtbW54Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MzM1NDIsImV4cCI6MjA5MDQwOTU0Mn0.dLLLBAigTC1E4qefBrYCcZ5VEYlk7A-loH4zxIqujsQ'
+      url: env.VITE_SUPABASE_URL || '',
+      anonKey: env.VITE_SUPABASE_ANON_KEY || ''
     };
   }
 

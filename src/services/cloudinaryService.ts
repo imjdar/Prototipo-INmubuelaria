@@ -42,24 +42,21 @@ export class CloudinaryService {
    * Obtiene la configuración de Cloudinary desde variables de entorno o almacenamiento local
    */
   public getConfig(): CloudinaryConfig {
-    const defaultCloud = 'dgsj8owve';
-    const defaultPreset = 'premier_preset';
-
     if (typeof window !== 'undefined') {
       const storedCloud = localStorage.getItem('premier_cloudinary_cloud');
       const storedPreset = localStorage.getItem('premier_cloudinary_preset');
       if (storedCloud) {
         return {
           cloudName: storedCloud,
-          uploadPreset: storedPreset || defaultPreset
+          uploadPreset: storedPreset || ''
         };
       }
     }
 
     const env = (import.meta as unknown as { env: Record<string, string> }).env || {};
     return {
-      cloudName: env.VITE_CLOUDINARY_CLOUD_NAME || defaultCloud,
-      uploadPreset: env.VITE_CLOUDINARY_UPLOAD_PRESET || defaultPreset
+      cloudName: env.VITE_CLOUDINARY_CLOUD_NAME || '',
+      uploadPreset: env.VITE_CLOUDINARY_UPLOAD_PRESET || ''
     };
   }
 

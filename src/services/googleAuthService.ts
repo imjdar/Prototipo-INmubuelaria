@@ -86,7 +86,7 @@ export class GoogleAuthService {
       if (stored) return stored;
     }
     const env = (import.meta as unknown as { env: Record<string, string> }).env || {};
-    return env.VITE_GOOGLE_CLIENT_ID || '51740980840-5jirn1morilo3co8jfqll3bkf2qbrf0s.apps.googleusercontent.com';
+    return env.VITE_GOOGLE_CLIENT_ID || '';
   }
 
   /**
